@@ -11,11 +11,37 @@ async function checkCode() {
         if (data[code]) {
             const link = data[code];
             document.getElementById('codeInput').value = link;
-            resultDiv.innerHTML = "✅ Link generated successfully!<br>Copy and paste it in your browser.";
+            resultDiv.innerHTML = "✅ Link generated successfully!";
             copyBtn.style.display = 'inline-block';
+            showNotification("✅ Valid code! Link generated.", "success");
         } else {
             resultDiv.innerHTML = "❌ Invalid code. Try again.";
             copyBtn.style.display = 'none';
+            showNotification("❌ Invalid code. Please try again.", "error");
         }
     } catch (error) {
         resultDiv.innerHTML = "⚠️ Error fetching codes. Please try again later.";
+        showNotification("⚠️ Error fetching codes. Try again later.", "error");
+    }
+}
+
+function copyLink() {
+    const link = document.getElementById('codeInput').value;
+    navigator.clipboard.writeText(link).then(() => {
+        showNotification("🔗 Link copied to clipboard!", "success");
+    }).catch(err => {
+        console.error("Error copying link:", err);
+    });
+}
+
+// Show notifications
+function showNotification(message, type) {
+    const notification = document.getElementById('notification');
+    notification.innerHTML = message;
+    notification.className = type;
+    notification.style.display = 'block';
+
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 3000);
+}
