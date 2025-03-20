@@ -4,27 +4,6 @@
     <title>Tinkle Party Games</title>
     <link rel="icon" type="image/png" href="yes.ico">
     <link rel="stylesheet" type="text/css" href="styles.css">
-    
-    <!-- Firebase SDKs -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
-      import { getFirestore } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
-      
-      // Your Firebase configuration
-      const firebaseConfig = {
-        apiKey: "AIzaSyC2xLiPavKuwYo7GM2KfXBSpwb5sWoANeI",
-        authDomain: "code-sysmte.firebaseapp.com",
-        projectId: "code-sysmte",
-        storageBucket: "code-sysmte.appspot.com",
-        messagingSenderId: "132894029765",
-        appId: "1:132894029765:web:48b6965fbc7cb654cdfdac",
-        measurementId: "G-T1N8W37XG8"
-      };
-
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-    </script>
 </head>
 <body>
     <div id="container">
@@ -34,8 +13,8 @@
         <div id="result"></div>
     </div>
     <div id="notification" class="hidden"></div>
-    
-    <!-- Your JavaScript -->
+
+
     <script src="app.js"></script>
 </body>
 </html>
