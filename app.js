@@ -1,22 +1,25 @@
 async function checkCode() {
     const code = document.getElementById('codeInput').value.trim();
     const resultDiv = document.getElementById('result');
-    const copyBtn = document.getElementById('copyBtn');
+    const submitBtn = document.getElementById('submitBtn');
 
     // Fetch codes from GitHub JSON
     try {
-        const response = await fetch('https://raw.githubusercontent.com/nawsomey/redirect/main/codes.json');
+        const response = await fetch('https://raw.githubusercontent.com/yourusername/yourrepo/main/codes.json');
         const data = await response.json();
 
         if (data[code]) {
             const link = data[code];
             document.getElementById('codeInput').value = link;
             resultDiv.innerHTML = "✅ Link generated successfully!";
-            copyBtn.style.display = 'inline-block';
+
+            // Replace Submit button with Copy Link button
+            submitBtn.innerHTML = "Copy Link";
+            submitBtn.onclick = () => copyLink(link);
+            submitBtn.style.backgroundColor = "#4CAF50";
             showNotification("✅ Valid code! Link generated.", "success");
         } else {
             resultDiv.innerHTML = "❌ Invalid code. Try again.";
-            copyBtn.style.display = 'none';
             showNotification("❌ Invalid code. Please try again.", "error");
         }
     } catch (error) {
@@ -25,8 +28,7 @@ async function checkCode() {
     }
 }
 
-function copyLink() {
-    const link = document.getElementById('codeInput').value;
+function copyLink(link) {
     navigator.clipboard.writeText(link).then(() => {
         showNotification("🔗 Link copied to clipboard!", "success");
     }).catch(err => {
