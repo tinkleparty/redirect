@@ -37,7 +37,7 @@ async function generateCode() {
 // Upload updated JSON to GitHub
 async function uploadToGitHub(updatedJSON) {
     const githubAPI = 'https://api.github.com/repos/nawsomey/redirect/contents/codes.json';
-    const token = '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';
+    const token = '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';  // Use valid token
 
     try {
         // Get current file SHA
@@ -64,6 +64,7 @@ async function uploadToGitHub(updatedJSON) {
         });
 
         const commitResult = await commitResponse.json();
+        console.log('Commit Response:', commitResult);  // Log the response for debugging
 
         if (commitResult.content) {
             return true;
@@ -71,7 +72,7 @@ async function uploadToGitHub(updatedJSON) {
             throw new Error('Failed to commit to GitHub');
         }
     } catch (error) {
-        console.error("Error uploading to GitHub:", error);
+        console.error("Error uploading to GitHub:", error.message);
         return false;
     }
 }
