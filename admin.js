@@ -12,7 +12,7 @@ async function generateCode() {
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
 
     // Fetch existing codes from GitHub
-    const response = await fetch('https://raw.githubusercontent.com/nawsomey/redirect/main/codes.json');
+    const response = await fetch('https://raw.githubusercontent.com/yourusername/yourrepo/main/codes.json');
     const data = await response.json();
 
     // Add new code and link
@@ -21,42 +21,59 @@ async function generateCode() {
     // Prepare updated JSON
     const updatedJSON = JSON.stringify(data, null, 4);
 
-    // Save updated JSON to GitHub (manually replace via API or upload manually)
-    await uploadToGitHub(updatedJSON);
+    // Upload updated JSON to GitHub
+    const success = await uploadToGitHub(updatedJSON);
 
-    // Show success message and generated code
-    generatedCodeInput.value = code;
-    generatedCodeInput.style.display = 'block';
-    showNotification(`✅ Code generated successfully!`, "success");
+    if (success) {
+        // Show success message and generated code
+        generatedCodeInput.value = code;
+        generatedCodeInput.style.display = 'block';
+        showNotification(`✅ Code generated successfully!`, "success");
+    } else {
+        showNotification("⚠️ Error while committing code to GitHub.", "error");
+    }
 }
 
-// Upload updated JSON to GitHub (via API or manual)
+// Upload updated JSON to GitHub
 async function uploadToGitHub(updatedJSON) {
-    const githubAPI = 'https://api.github.com/repos/nawsomey/redirect/contents/codes.json';
-    const token = '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';
+    const githubAPI = 'https://api.github.com/repos/yourusername/yourrepo/contents/codes.json';
+    const token = 'YOUR_GITHUB_PERSONAL_ACCESS_TOKEN';
 
-    // Get current file SHA
-    const response = await fetch(githubAPI, {
-        headers: { Authorization: `token ${token}` }
-    });
-    const fileData = await response.json();
-    const sha = fileData.sha;
+    try {
+        // Get current file SHA
+        const response = await fetch(githubAPI, {
+            headers: { Authorization: `token ${token}` }
+        });
+        const fileData = await response.json();
+        const sha = fileData.sha;
 
-    // Upload updated content
-    const commitData = {
-        message: "Update codes.json",
-        content: btoa(unescape(encodeURIComponent(updatedJSON))),
-        sha: sha
-    };
+        // Commit updated content to GitHub
+        const commitData = {
+            message: "Update codes.json with new generated code",
+            content: btoa(unescape(encodeURIComponent(updatedJSON))),
+            sha: sha
+        };
 
-    await fetch(githubAPI, {
-        method: 'PUT',
-        headers: {
-            Authorization: `token ${token}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(commitData)
-    });
+        const commitResponse = await fetch(githubAPI, {
+            method: 'PUT',
+            headers: {
+                Authorization: `token ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(commitData)
+        });
+
+        const commitResult = await commitResponse.json();
+
+        if (commitResult.content) {
+            return true;
+        } else {
+            throw new Error('Failed to commit to GitHub');
+        }
+    } catch (error) {
+        console.error("Error uploading to GitHub:", error);
+        return false;
+    }
 }
 
 // Show notifications
