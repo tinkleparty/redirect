@@ -1,18 +1,15 @@
-// Initialize Firebase (assumed to be included in the HTML as you provided earlier)
-const db = firebase.firestore();
-
-// Function to check the code
 async function checkCode() {
     const code = document.getElementById('codeInput').value.trim();
     const resultDiv = document.getElementById('result');
     const submitBtn = document.getElementById('submitBtn');
 
+    // Fetch codes from GitHub JSON
     try {
-        // Fetch code from Firebase Firestore
-        const codeDoc = await db.collection('codes').doc(code).get();
+        const response = await fetch('https://raw.githubusercontent.com/nawsomey/redirect/main/codes.json');
+        const data = await response.json();
 
-        if (codeDoc.exists) {
-            const link = codeDoc.data().link;
+        if (data[code]) {
+            const link = data[code];
             document.getElementById('codeInput').value = link;
             resultDiv.innerHTML = "✅ Link generated successfully!";
 
@@ -26,12 +23,12 @@ async function checkCode() {
             showNotification("❌ Invalid code. Please try again.", "error");
         }
     } catch (error) {
-        resultDiv.innerHTML = "⚠️ Error fetching code. Please try again later.";
-        showNotification("⚠️ Error fetching code. Try again later.", "error");
+        resultDiv.innerHTML = "⚠️ Error fetching codes. Please try again later.";
+        showNotification("⚠️ Error fetching codes. Try again later.", "error");
     }
 }
 
-// Function to copy the link to the clipboard
+
 function copyLink(link) {
     navigator.clipboard.writeText(link).then(() => {
         showNotification("🔗 Link copied to clipboard!", "success");
