@@ -1,3 +1,7 @@
+// Initialize Firebase (this code is assumed to be added in your HTML as you provided)
+const db = firebase.firestore();
+
+// Function to generate a code
 async function generateCode() {
     const link = document.getElementById('linkInput').value.trim();
     const resultDiv = document.getElementById('result');
@@ -11,18 +15,8 @@ async function generateCode() {
     // Generate a random 6-character code
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-    // Fetch existing codes from GitHub
-    const response = await fetch('https://raw.githubusercontent.com/nawsomey/redirect/main/codes.json');
-    const data = await response.json();
-
-    // Add new code and link
-    data[code] = link;
-
-    // Prepare updated JSON
-    const updatedJSON = JSON.stringify(data, null, 4);
-
-    // Upload updated JSON to GitHub
-    const success = await uploadToGitHub(updatedJSON);
+    // Save code and link to Firebase
+    const success = await saveToFirebase(code, link);
 
     if (success) {
         // Show success message and generated code
@@ -30,49 +24,25 @@ async function generateCode() {
         generatedCodeInput.style.display = 'block';
         showNotification(`✅ Code generated successfully!`, "success");
     } else {
-        showNotification("⚠️ Error while committing code to GitHub.", "error");
+        showNotification("⚠️ Error while saving code to Firebase.", "error");
     }
 }
 
-// Upload updated JSON to GitHub
-async function uploadToGitHub(updatedJSON) {
-    const githubAPI = 'https://api.github.com/repos/nawsomey/redirect/contents/codes.json';
-    const token = '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';  // Use valid token
-
+// Function to save the code and link to Firebase Firestore
+async function saveToFirebase(code, link) {
     try {
-        // Get current file SHA
-        const response = await fetch(githubAPI, {
-            headers: { Authorization: `token ${token}` }
-        });
-        const fileData = await response.json();
-        const sha = fileData.sha;
+        // Reference to the 'codes' collection in Firestore
+        const codesRef = db.collection("codes");
 
-        // Commit updated content to GitHub
-        const commitData = {
-            message: "Update codes.json with new generated code",
-            content: btoa(unescape(encodeURIComponent(updatedJSON))),
-            sha: sha
-        };
-
-        const commitResponse = await fetch(githubAPI, {
-            method: 'PUT',
-            headers: {
-                Authorization: `token ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(commitData)
+        // Add new document with the generated code as the document ID and the link as the data
+        await codesRef.doc(code).set({
+            link: link
         });
 
-        const commitResult = await commitResponse.json();
-        console.log('Commit Response:', commitResult);  // Log the response for debugging
-
-        if (commitResult.content) {
-            return true;
-        } else {
-            throw new Error('Failed to commit to GitHub');
-        }
+        console.log('Code saved to Firebase successfully');
+        return true;
     } catch (error) {
-        console.error("Error uploading to GitHub:", error.message);
+        console.error('Error saving to Firebase:', error);
         return false;
     }
 }
