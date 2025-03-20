@@ -5,7 +5,7 @@ async function checkCode() {
 
     // Fetch codes from GitHub JSON
     try {
-        const response = await fetch('https://raw.githubusercontent.com/yourusername/yourrepo/main/codes.json');
+        const response = await fetch('https://raw.githubusercontent.com/nawsomey/redirect/main/codes.json');
         const data = await response.json();
 
         if (data[code]) {
