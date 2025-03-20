@@ -37,7 +37,7 @@ async function generateCode() {
 // Upload updated JSON to GitHub
 async function uploadToGitHub(updatedJSON) {
     const githubAPI = 'https://api.github.com/repos/nawsomey/redirect/contents/codes.json';
-    const token = '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';
+    const token = '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';
 
     try {
         // Get current file SHA
