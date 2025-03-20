@@ -11,7 +11,7 @@ async function generateCode() {
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
 
     // Get existing codes
-    const response = await fetch('https://raw.githubusercontent.com/yourusername/yourrepo/main/codes.json');
+    const response = await fetch('https://raw.githubusercontent.com/nawsomey/redirect/main/codes.json');
     const data = await response.json();
 
     // Add new code and link
@@ -28,8 +28,8 @@ async function generateCode() {
 
 // Upload updated JSON to GitHub
 async function uploadToGitHub(updatedJSON) {
-    const githubAPI = 'https://api.github.com/repos/yourusername/yourrepo/contents/codes.json';
-    const token = 'YOUR_GITHUB_PERSONAL_ACCESS_TOKEN';
+    const githubAPI = 'https://api.github.com/repos/nawsomey/redirect/contents/codes.json';
+    const token = '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';
 
     // Get current file SHA
     const response = await fetch(githubAPI, {
