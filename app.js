@@ -48,7 +48,44 @@ function copyLink(link) {
 function openPage() {
     if (generatedLink) {
         const newTab = window.open("about:blank", "_blank");
-        newTab.document.write(`<iframe src="${generatedLink}" style="border:none;width:100%;height:100vh;"></iframe>`);
+        newTab.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    html, body {
+                        margin: 0;
+                        padding: 0;
+                        height: 100%;
+                        width: 100%;
+                        overflow: hidden;
+                    }
+                    iframe {
+                        border: none;
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100vw;
+                        height: 100vh;
+                    }
+                </style>
+            </head>
+            <body>
+                <iframe id="siteFrame" src="${generatedLink}"></iframe>
+                <script>
+                    // Ensure iframe resizes with window
+                    const frame = document.getElementById("siteFrame");
+                    function resizeFrame() {
+                        frame.style.width = window.innerWidth + "px";
+                        frame.style.height = window.innerHeight + "px";
+                    }
+                    window.addEventListener("resize", resizeFrame);
+                    resizeFrame(); // run once on load
+                </script>
+            </body>
+            </html>
+        `);
+        newTab.document.close();
     }
 }
 
