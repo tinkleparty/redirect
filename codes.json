@@ -59,5 +59,10 @@
     "RB4": "https://nawsomey.github.io/host/redball4.html",
     "BLOCK": "https://nawsomey.github.io/redirect/blockblast.html",
     "FPS": "https://play.unity.com/api/v1/games/game/1797942a-d436-4284-a084-e6f9f88fd7b7/build/latest/frame",
-    "PLINKO": "https://play.unity.com/api/v1/games/game/58c0c810-3e03-4257-9a01-0a825c834861/build/latest/frame"
+    "PLINKO": "https://play.unity.com/api/v1/games/game/58c0c810-3e03-4257-9a01-0a825c834861/build/latest/frame",
+    "HS1": "https://nawsomey.github.io/host/breaking.html",
+    "HS2": "https://nawsomey.github.io/host/escaping.html",
+    "HS3": "https://nawsomey.github.io/host/stealing.html",
+    "RW1": "https://nawsomey.github.io/host/raftwars.html",
+    "RW2": "https://nawsomey.github.io/host/raftwars2.html"
 }
