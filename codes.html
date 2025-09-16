@@ -2,39 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Game Codes</title>
+  <title>English Assignment</title>
   <link rel="stylesheet" href="codes.css">
 </head>
 <body>
   <div id="container">
-    <h2>Game Codes</h2>
+    <h2>Codes</h2>
     <div id="games">
-      <!-- Example Game -->
       <div class="game-card" data-code="FUN">
+        <p class="game-name">FeedVid Live</p>
         <img src="https://img.icons8.com/color/512/video.png" alt="FeedVid Live">
         <button class="get-code">Get Code</button>
       </div>
 
       <div class="game-card" data-code="RACCOON">
+        <p class="game-name">Tanuki Sunset</p>
         <img src="https://img.icons8.com/color/512/raccoon.png" alt="Tanuki Sunset">
         <button class="get-code">Get Code</button>
       </div>
 
       <div class="game-card" data-code="POLY">
+        <p class="game-name">PolyTrack</p>
         <img src="https://img.icons8.com/color/512/car.png" alt="PolyTrack">
         <button class="get-code">Get Code</button>
       </div>
 
       <div class="game-card" data-code="VAMP">
+        <p class="game-name">Vampire Survivors</p>
         <img src="https://img.icons8.com/color/512/vampire.png" alt="Vampire Survivors">
         <button class="get-code">Get Code</button>
       </div>
 
       <div class="game-card" data-code="SCARY">
+        <p class="game-name">Burger & Frights</p>
         <img src="https://img.icons8.com/color/512/hamburger.png" alt="Burger & Frights">
         <button class="get-code">Get Code</button>
       </div>
-
+      
       <!-- Add more game-cards here -->
     </div>
   </div>
@@ -47,10 +51,19 @@
 
     buttons.forEach(btn => {
       btn.addEventListener('click', () => {
-        const code = btn.parentElement.getAttribute('data-code');
-        showNotification("Your Code: " + code, true);
+        const card = btn.parentElement;
+        const code = card.getAttribute('data-code');
+        copyToClipboard(code);
+        showNotification("Copied! Code: " + code, true);
       });
     });
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).catch(err => {
+        console.error("Clipboard copy failed", err);
+        showNotification("Failed to copy code", false);
+      });
+    }
 
     function showNotification(message, success = true) {
       notification.textContent = message;
