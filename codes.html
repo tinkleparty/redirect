@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Game Codes</title>
+  <link rel="stylesheet" href="codes.css">
+</head>
+<body>
+  <div id="container">
+    <h2>Game Codes</h2>
+    <div id="games">
+      <!-- Example Game -->
+      <div class="game-card" data-code="FUN">
+        <img src="https://img.icons8.com/color/512/video.png" alt="FeedVid Live">
+        <button class="get-code">Get Code</button>
+      </div>
+
+      <div class="game-card" data-code="RACCOON">
+        <img src="https://img.icons8.com/color/512/raccoon.png" alt="Tanuki Sunset">
+        <button class="get-code">Get Code</button>
+      </div>
+
+      <div class="game-card" data-code="POLY">
+        <img src="https://img.icons8.com/color/512/car.png" alt="PolyTrack">
+        <button class="get-code">Get Code</button>
+      </div>
+
+      <div class="game-card" data-code="VAMP">
+        <img src="https://img.icons8.com/color/512/vampire.png" alt="Vampire Survivors">
+        <button class="get-code">Get Code</button>
+      </div>
+
+      <div class="game-card" data-code="SCARY">
+        <img src="https://img.icons8.com/color/512/hamburger.png" alt="Burger & Frights">
+        <button class="get-code">Get Code</button>
+      </div>
+
+      <!-- Add more game-cards here -->
+    </div>
+  </div>
+
+  <div id="notification"></div>
+
+  <script>
+    const buttons = document.querySelectorAll('.get-code');
+    const notification = document.getElementById('notification');
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const code = btn.parentElement.getAttribute('data-code');
+        showNotification("Your Code: " + code, true);
+      });
+    });
+
+    function showNotification(message, success = true) {
+      notification.textContent = message;
+      notification.className = success ? "success" : "error";
+      notification.style.display = "block";
+
+      setTimeout(() => {
+        notification.style.display = "none";
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
