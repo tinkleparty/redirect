@@ -15,6 +15,8 @@ body {
   border-radius: 15px;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
   max-width: 1000px;
+  overflow-y: auto;
+  max-height: 95vh;
 }
 
 h2 {
@@ -35,11 +37,19 @@ h2 {
   overflow: hidden;
   box-shadow: 0 0 8px rgba(255,255,255,0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding-bottom: 10px;
 }
 
 .game-card:hover {
   transform: scale(1.05);
   box-shadow: 0 0 15px rgba(255,255,255,0.3);
+}
+
+.game-name {
+  color: white;
+  font-size: 14px;
+  margin: 10px 0 5px;
+  font-weight: bold;
 }
 
 .game-card img {
