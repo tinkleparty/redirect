@@ -16,7 +16,7 @@ body {
 
 #announcement-banner {
   width: 100%;
-  background: linear-gradient(90deg, #ff7e5f, #feb47b);
+  background: linear-gradient(90deg, #333333, #1a1a1a); /* dark gradient to match site */
   color: white;
   text-align: center;
   padding: 15px;
@@ -28,11 +28,13 @@ body {
   top: 0;
   left: 0;
   z-index: 999;
+  border-bottom: 1px solid #444; /* subtle border for separation */
 }
 
 #announcement-banner:hover {
   transform: scale(1.02);
   opacity: 0.9;
+  background: linear-gradient(90deg, #444, #222); /* slightly lighter on hover */
 }
 
 #container {
@@ -130,7 +132,7 @@ h2 {
 </style>
 </head>
 <body>
-<div id="announcement-banner" onclick="window.open('https://nawsomey.github.io/redirect/', '_blank')">
+<div id="announcement-banner" onclick="window.open('https://nawsomey.github.io/redirect/', '_blank', 'noopener,noreferrer')">
   📢 Enter Codes Here!
 </div>
 <div id="container">
