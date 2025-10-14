@@ -6,60 +6,95 @@
 <style>
 body {
   background-color: black;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* changed from center to flex-start to fit banner */
-  height: 100%;
   margin: 0;
   font-family: Arial, sans-serif;
+  overflow-x: hidden;
+  display: flex;
 }
 
+/* --- Announcement --- */
 #announcement-banner {
   width: 100%;
-  background: linear-gradient(90deg, #333333, #1a1a1a); /* dark gradient to match site */
+  background: linear-gradient(90deg, #333333, #1a1a1a);
   color: white;
   text-align: center;
   padding: 15px;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  transition: transform 0.2s, opacity 0.2s;
   position: fixed;
   top: 0;
   left: 0;
   z-index: 999;
-  border-bottom: 1px solid #444; /* subtle border for separation */
+  border-bottom: 1px solid #444;
 }
-
 #announcement-banner:hover {
-  transform: scale(1.02);
   opacity: 0.9;
-  background: linear-gradient(90deg, #444, #222); /* slightly lighter on hover */
+  background: linear-gradient(90deg, #444, #222);
 }
 
+/* --- Sidebar --- */
+#sidebar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 200px;
+  background-color: #111;
+  height: calc(100vh - 60px);
+  border-right: 1px solid #333;
+  padding-top: 20px;
+  overflow-y: auto;
+}
+.sidebar-item {
+  color: white;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.sidebar-item:hover,
+.sidebar-item.active { background-color: #333; }
+
+/* --- Main Container --- */
 #container {
-  text-align: center;
+  margin-left: 200px;
+  margin-top: 60px;
   background-color: #1a1a1a;
   padding: 20px;
   border-radius: 15px;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-  max-width: 1200px;
-  overflow-y: auto;
-  max-height: 90vh;
-  margin-top: 60px; /* to avoid overlap with the banner */
+  box-shadow: 0 0 10px rgba(255,255,255,0.2);
+  max-width: calc(100% - 220px);
+  min-height: calc(100vh - 80px);
+  flex: 1;
 }
 
 h2 {
   color: white;
-  margin-bottom: 20px;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
+#search-bar {
+  width: 80%;
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  margin: 0 auto 25px;
+  outline: none;
+  display: block;
+  text-align: center;
+}
+
+/* --- Game Gallery Layout --- */
 #games {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 25px;
+  padding-bottom: 50px;
 }
 
+/* --- Game Card --- */
 .game-card {
   position: relative;
   background-color: #222;
@@ -67,32 +102,30 @@ h2 {
   overflow: hidden;
   box-shadow: 0 0 8px rgba(255,255,255,0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  padding-bottom: 10px;
+  width: 180px;
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-
 .game-card:hover {
   transform: scale(1.05);
   box-shadow: 0 0 15px rgba(255,255,255,0.3);
 }
-
+.game-card img {
+  width: 160px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 15px;
+  margin-top: 10px;
+}
 .game-name {
   color: white;
   font-size: 14px;
-  margin: 10px 0 5px;
   font-weight: bold;
+  margin: 8px 0 5px;
 }
-
-.game-card img {
-  width: 100%;
-  border-radius: 20px;
-  display: block;
-}
-
 .get-code {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
   padding: 6px 14px;
   border-radius: 10px;
   background-color: #4CAF50;
@@ -101,13 +134,31 @@ h2 {
   cursor: pointer;
   font-size: 12px;
   opacity: 0.9;
-  transition: background 0.3s;
 }
+.get-code:hover { background-color: #45a049; }
 
-.get-code:hover {
-  background-color: #45a049;
+/* --- Rank Badges --- */
+.rank-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  color: black;
+  animation: pulse 1.2s infinite alternate;
 }
+@keyframes pulse {
+  from { transform: scale(1); }
+  to { transform: scale(1.15); }
+}
+.rank-gold   { background: linear-gradient(45deg, gold, #ffda73); box-shadow: 0 0 12px gold; }
+.rank-silver { background: linear-gradient(45deg, #c0c0c0, #eeeeee); box-shadow: 0 0 12px #ccc; }
+.rank-bronze { background: linear-gradient(45deg, #cd7f32, #e6a96f); box-shadow: 0 0 12px #cd7f32; }
+.rank-blue   { background: linear-gradient(45deg, #00bfff, #80e0ff); box-shadow: 0 0 12px #00bfff; }
 
+/* --- Notification --- */
 #notification {
   position: fixed;
   top: 20px;
@@ -119,31 +170,37 @@ h2 {
   display: none;
   z-index: 1000;
 }
-
-.success {
-  background-color: #4CAF50;
-  border: 1px solid #3e8e41;
-}
-
-.error {
-  background-color: #f44336;
-  border: 1px solid #d32f2f;
-}
+.success { background-color: #4CAF50; }
+.error { background-color: #f44336; }
 </style>
 </head>
 <body>
-<div id="announcement-banner" onclick="window.open('https://nawsomey.github.io/redirect/', '_blank', 'noopener,noreferrer')">
+
+<div id="announcement-banner" onclick="window.open('https://nawsomey.github.io/redirect/', '_blank')">
   📢 Enter Codes Here!
 </div>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sidebar-item active" data-category="all">All Games</div>
+  <div class="sidebar-item" data-category="popular">⭐ Most Popular</div>
+  <div class="sidebar-item" data-category="action">⚔️ Action</div>
+  <div class="sidebar-item" data-category="horror">👻 Horror</div>
+  <div class="sidebar-item" data-category="arcade">🕹️ Arcade</div>
+  <div class="sidebar-item" data-category="puzzle">🧩 Puzzle</div>
+</div>
+
+<!-- MAIN -->
 <div id="container">
-  <h2>Codes</h2>
+  <h2 id="category-title">All Games</h2>
+  <input id="search-bar" type="text" placeholder="🔍 Search games..." />
   <div id="games">
     <div class="game-card" data-code="CODES">
       <p class="game-name">This Page</p>
       <img src="https://raw.githubusercontent.com/Nawsomey/images/refs/heads/main/IMG_2756.jpeg" alt="This Page">
       <button class="get-code">Get Code</button>
     </div>
-    <div class="game-card" data-code="FUN">
+    <div class="game-card" data-code="FUN" data-category="horror">
       <p class="game-name">FeedVid Live</p>
       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7ODvZa5aAF8Hj8nWOrVcIGgolUgeqIgbL4A&s" alt="FeedVid Live">
       <button class="get-code">Get Code</button>
@@ -163,7 +220,7 @@ h2 {
       <img src="https://play-lh.googleusercontent.com/R1dShZj1HNBQzrHhsAD9_F8BRc2FU-nlDMU7OIAIwnMge04QWvNZR-clnXnEd_v30Qo" alt="Vampire Survivors">
       <button class="get-code">Get Code</button>
     </div>
-    <div class="game-card" data-code="SCARY">
+    <div class="game-card" data-code="SCARY" data-category="horror">
       <p class="game-name">Burger & Frights</p>
       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQL-8AFCNa1vRpaXno46rRXszXCzxWYfrY0_g&s" alt="Burger & Frights">
       <button class="get-code">Get Code</button>
@@ -208,7 +265,7 @@ h2 {
       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQmy73hHHgqrJSvDJyUYr3niFBHo5oo3JFHCg&s" alt="Death Run 3D">
       <button class="get-code">Get Code</button>
     </div>
-    <div class="game-card" data-code="BALDI">
+    <div class="game-card" data-code="BALDI" data-category="horror">
       <p class="game-name">Baldi’s Basics</p>
       <img src="https://play-lh.googleusercontent.com/EPV1TB4So1lB0DGrdCVExDpNU8ML67nd8OqBeoOIM-s6sDicxmDdPvCXD6n7LKevFl0" alt="Baldi’s Basics">
       <button class="get-code">Get Code</button>
@@ -223,7 +280,7 @@ h2 {
       <img src="https://play-lh.googleusercontent.com/7l3WAPbei9MXrxnCzImpXi2VxjEBtgDl0htwvTnA-YqpJAuQJPpSiby1oB8LZMgD0IAy" alt="Drive Mad">
       <button class="get-code">Get Code</button>
     </div>
-    <div class="game-card" data-code="FNAF1">
+    <div class="game-card" data-code="FNAF1" data-category="horror">
       <p class="game-name">FNAF 1</p>
       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbMsflA8XZ_FHsEuThoO4aUC8utbvS24B9zw&s" alt="FNAF 1">
       <button class="get-code">Get Code</button>
@@ -358,12 +415,12 @@ h2 {
       <img src="https://www.metacritic.com/a/img/catalog/provider/6/12/6-1-758332-52.jpg" alt="1v1.lol">
       <button class="get-code">Get Code</button>
     </div>
-    <div class="game-card" data-code="GRANNY">
+    <div class="game-card" data-code="GRANNY" data-category="horror">
       <p class="game-name">Granny</p>
       <img src="https://play-lh.googleusercontent.com/yT_LBq_tyKeIDohKDsqN_Qt18jGIPUYIxY2C-1-E2YA9Qd60uZW08pua17qBmIiDPA" alt="Granny">
       <button class="get-code">Get Code</button>
     </div>
-    <div class="game-card" data-code="GRANNY2">
+    <div class="game-card" data-code="GRANNY2" data-category="horror">
       <p class="game-name">Granny 2</p>
       <img src="https://play-lh.googleusercontent.com/iZ7NP-56YenT2dpgKEAw3n7IKFyu-S_9Iu3ayo28XYTgZpFtxsK_HXltV36pysSJqq8=w240-h480-rw" alt="Granny 2">
       <button class="get-code">Get Code</button>
@@ -473,12 +530,12 @@ h2 {
       <img src="https://play-lh.googleusercontent.com/lDc6_9GqbCXhsp6MHTPOtK8y1LxZz8pj0azRHLgRImBWHXTkhw_0hlT1XGyeP7lwn8k" alt="Raft Wars 2">
       <button class="get-code">Get Code</button>
     </div>
-    <div class="game-card" data-code="BUCKSHOT">
+    <div class="game-card" data-code="BUCKSHOT" data-category="horror">
       <p class="game-name">Buckshot Roulette</p>
       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQFP-TxRuSQphlOWAHiCJUBxcJvCY6OQCZP5UCJg5u3aYZRD5WaI8relaMeqhyh5iVVyHo&usqp=CAU" alt="Buckshot Roulette">
       <button class="get-code">Get Code</button>
     </div>
-    <div class="game-card" data-code="BENDY">
+    <div class="game-card" data-code="BENDY" data-category="horror">
       <p class="game-name">Bendy and the Ink Machine</p>
       <img src="https://play-lh.googleusercontent.com/96eBM7bUrouYRKa_1k3d2inqHMNJp25BX4IeGbpHdhvOYjLjqFn4upD2wEwGPsOBh2oz" alt="Bendy and the Ink Machine">
       <button class="get-code">Get Code</button>
@@ -503,7 +560,7 @@ h2 {
       <img src="https://play-lh.googleusercontent.com/tRpviKT0mUi47iAaBne_yhe_xIuFzpW1mCIqoW457tNsKZddZHwiCUR2ga-rU3VXw04" alt="Slither.io">
       <button class="get-code">Get Code</button>
     </div>
-    <div class="game-card" data-code="REPO">
+    <div class="game-card" data-code="REPO" data-category="horror">
       <p class="game-name">R.E.P.O.</p>
       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7erpTVvLl3jcjJOcvizpDTMAPPKyLGaaLIA&s" alt="R.E.P.O.">
       <button class="get-code">Get Code</button>
@@ -518,17 +575,17 @@ h2 {
       <img src="https://play-lh.googleusercontent.com/p7kWbWBFxQIrzolEqiV5uSvctLeyssZvBV7UBOX29wzZI52IdcSs4qCB_zsQJL1mt9A" alt="Geometry Dash Lite">
       <button class="get-code">Get Code</button>
     </div>
-    <div class="game-card" data-code="FNAFWORLD">
+    <div class="game-card" data-code="FNAFWORLD" data-category="horror">
       <p class="game-name">FNAF World</p>
       <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQ4aXQb7ab14NFxtfCOjHT2SutBR5R1Hd8lA&s" alt="FNAF World">
       <button class="get-code">Get Code</button>
     </div>
-    <div class="game-card" data-code="UCN">
+    <div class="game-card" data-code="UCN" data-category="horror">
       <p class="game-name">Ultimate Custom Night</p>
       <img src="https://play-lh.googleusercontent.com/pB7dsLLcRgADtFpEPeKc5mSyAn1E1JzrdQ1V7-Y5hizgub3G8e9UJIc5opC9mYXKSBw" alt="Ultimate Custom Night">
       <button class="get-code">Get Code</button>
     </div>
-    <div class="game-card" data-code="FTF1">
+    <div class="game-card" data-code="FTF1" data-category="horror">
       <p class="game-name">Fears to Fathom: Home Alone</p>
       <img src="https://sc.filehippo.net/images/t_app-icon-l/p/1056243c-a2c2-4903-9fda-1624d6d9ccfa/3410788382/fears-to-fathom-fears-to-fathom-icn.png" alt="Fears to Fathom: Home Alone">
       <button class="get-code">Get Code</button>
@@ -544,34 +601,108 @@ h2 {
 <div id="notification"></div>
 
 <script>
-const buttons = document.querySelectorAll('.get-code');
-const notification = document.getElementById('notification');
+const sidebarItems = document.querySelectorAll(".sidebar-item");
+const gamesContainer = document.getElementById("games");
+const allCards = [...document.querySelectorAll(".game-card")]; // Keep originals
+const title = document.getElementById("category-title");
+const notification = document.getElementById("notification");
+const searchBar = document.getElementById("search-bar");
 
-buttons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const card = btn.parentElement;
-    const code = card.getAttribute('data-code');
-    copyToClipboard(code);
-    showNotification("Copied! Code: " + code, true);
-  });
-});
+let clickData = JSON.parse(localStorage.getItem("clickData")) || {};
 
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).catch(err => {
-    console.error("Clipboard copy failed", err);
-    showNotification("Failed to copy code", false);
+/* --- Copy Buttons --- */
+function attachButtonEvents(container = document) {
+  container.querySelectorAll(".get-code").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const card = btn.closest(".game-card");
+      const code = card.dataset.code;
+      const name = card.querySelector(".game-name").textContent;
+      clickData[name] = (clickData[name] || 0) + 1;
+      localStorage.setItem("clickData", JSON.stringify(clickData));
+
+      navigator.clipboard.writeText(code)
+        .then(() => showNotification("Copied! Code: " + code, true))
+        .catch(() => showNotification("Failed to copy code", false));
+
+      if (document.querySelector(".sidebar-item.active").dataset.category === "popular") {
+        showPopular();
+      }
+    });
   });
 }
 
+/* --- Notification --- */
 function showNotification(message, success = true) {
   notification.textContent = message;
   notification.className = success ? "success" : "error";
   notification.style.display = "block";
-
-  setTimeout(() => {
-    notification.style.display = "none";
-  }, 3000);
+  setTimeout(() => notification.style.display = "none", 3000);
 }
+
+/* --- Show Category --- */
+function showCategory(category) {
+  gamesContainer.innerHTML = "";
+  let filtered = allCards.filter(c => category === "all" || c.dataset.category === category);
+  filtered.forEach(c => gamesContainer.appendChild(c));
+  attachButtonEvents(gamesContainer);
+}
+
+/* --- Most Popular --- */
+function showPopular() {
+  const ranked = allCards
+    .map(card => {
+      const name = card.querySelector(".game-name").textContent;
+      return { card, count: clickData[name] || 0 };
+    })
+    .filter(e => e.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  gamesContainer.innerHTML = "";
+  ranked.forEach((entry, i) => {
+    const clone = entry.card.cloneNode(true);
+    const badge = document.createElement("div");
+    badge.className = "rank-badge";
+    if (i === 0) badge.classList.add("rank-gold");
+    else if (i === 1) badge.classList.add("rank-silver");
+    else if (i === 2) badge.classList.add("rank-bronze");
+    else badge.classList.add("rank-blue");
+    badge.textContent = `#${i + 1}`;
+    clone.appendChild(badge);
+    gamesContainer.appendChild(clone);
+  });
+  attachButtonEvents(gamesContainer);
+}
+
+/* --- Search --- */
+function filterSearch(term) {
+  const active = document.querySelector(".sidebar-item.active").dataset.category;
+  const cards = gamesContainer.querySelectorAll(".game-card");
+  term = term.toLowerCase();
+  cards.forEach(card => {
+    const name = card.querySelector(".game-name").textContent.toLowerCase();
+    const match = name.includes(term);
+    card.style.display = match ? "flex" : "none";
+  });
+}
+
+/* --- Sidebar Events --- */
+sidebarItems.forEach(item => {
+  item.addEventListener("click", () => {
+    sidebarItems.forEach(i => i.classList.remove("active"));
+    item.classList.add("active");
+    title.textContent = item.textContent.replace(/^[^a-zA-Z]+/, "");
+    const cat = item.dataset.category;
+    if (cat === "popular") showPopular();
+    else showCategory(cat);
+    filterSearch(searchBar.value);
+  });
+});
+
+searchBar.addEventListener("input", e => filterSearch(e.target.value));
+
+attachButtonEvents();
+showCategory("all");
 </script>
 </body>
 </html>
