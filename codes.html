@@ -744,5 +744,84 @@ searchBar.addEventListener("input", e => filterSearch(e.target.value));
 attachButtonEvents();
 showCategory("all");
 </script>
+<script type="module">
+  // Import Firebase SDKs
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
+  import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+
+  // Your Firebase config (yours looks correct)
+  const firebaseConfig = {
+    apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
+    authDomain: "mostpopular-39c60.firebaseapp.com",
+    databaseURL: "https://mostpopular-39c60-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "mostpopular-39c60",
+    storageBucket: "mostpopular-39c60.firebasestorage.app",
+    messagingSenderId: "939775132675",
+    appId: "1:939775132675:web:7d40bd8fff497c53553a36",
+    measurementId: "G-XTTQ03YFN9"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getDatabase(app);
+
+  // --- Functions to record and read clicks ---
+  async function incrementGameClick(name) {
+    const gameRef = ref(db, 'clickData/' + name);
+    const snapshot = await get(gameRef);
+    const current = snapshot.exists() ? snapshot.val() : 0;
+    await set(gameRef, current + 1);
+  }
+
+  async function getAllClickData() {
+    const snapshot = await get(ref(db, 'clickData'));
+    return snapshot.exists() ? snapshot.val() : {};
+  }
+
+  // --- Integrate with your page’s functions ---
+  window.attachButtonEvents = function(container = document) {
+    container.querySelectorAll(".get-code").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const card = btn.closest(".game-card");
+        const code = card.dataset.code;
+        const name = card.querySelector(".game-name").textContent;
+
+        await incrementGameClick(name);
+        navigator.clipboard.writeText(code)
+          .then(() => showNotification("Copied! Code: " + code, true))
+          .catch(() => showNotification("Failed to copy code", false));
+
+        if (document.querySelector(".sidebar-item.active").dataset.category === "popular") {
+          showPopular();
+        }
+      });
+    });
+  };
+
+  window.showPopular = async function() {
+    const clickData = await getAllClickData();
+    const ranked = allCards
+      .map(card => {
+        const name = card.querySelector(".game-name").textContent;
+        return { card, count: clickData[name] || 0 };
+      })
+      .filter(e => e.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    gamesContainer.innerHTML = "";
+    ranked.forEach((entry, i) => {
+      const clone = entry.card.cloneNode(true);
+      const badge = document.createElement("div");
+      badge.className = "rank-badge " + (i === 0 ? "rank-gold" : i === 1 ? "rank-silver" : i === 2 ? "rank-bronze" : "rank-blue");
+      badge.textContent = `#${i + 1}`;
+      clone.appendChild(badge);
+      gamesContainer.appendChild(clone);
+    });
+    attachButtonEvents(gamesContainer);
+  };
+</script>
 </body>
 </html>
