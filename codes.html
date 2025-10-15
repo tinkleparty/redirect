@@ -745,12 +745,10 @@ attachButtonEvents();
 showCategory("all");
 </script>
 <script type="module">
-  // Import Firebase SDKs
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
   import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
 
-  // Your Firebase config (yours looks correct)
   const firebaseConfig = {
     apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
     authDomain: "mostpopular-39c60.firebaseapp.com",
@@ -767,7 +765,7 @@ showCategory("all");
   const analytics = getAnalytics(app);
   const db = getDatabase(app);
 
-  // --- Functions to record and read clicks ---
+  // --- Add these functions ---
   async function incrementGameClick(name) {
     const gameRef = ref(db, 'clickData/' + name);
     const snapshot = await get(gameRef);
@@ -780,7 +778,7 @@ showCategory("all");
     return snapshot.exists() ? snapshot.val() : {};
   }
 
-  // --- Integrate with your page’s functions ---
+  // --- Hook into your existing buttons ---
   window.attachButtonEvents = function(container = document) {
     container.querySelectorAll(".get-code").forEach(btn => {
       btn.addEventListener("click", async () => {
@@ -788,7 +786,7 @@ showCategory("all");
         const code = card.dataset.code;
         const name = card.querySelector(".game-name").textContent;
 
-        await incrementGameClick(name);
+        await incrementGameClick(name); // 🔥 Save global count to Firebase
         navigator.clipboard.writeText(code)
           .then(() => showNotification("Copied! Code: " + code, true))
           .catch(() => showNotification("Failed to copy code", false));
