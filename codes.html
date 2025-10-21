@@ -841,75 +841,87 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const settingsRef = db.ref("siteSettings");
 const triggerRef = db.ref("jumpscareTriggerNow");
+const triggerAnnRef = db.ref("announcementTriggerNow");
 
 let lastAnnouncement = "";
+let lastAnnounceTriggerTime = 0;
 let lastJumpscareTimestamp = 0;
 
-// 🔄 Listen for site settings changes
+// 🔄 Listen for site settings changes (background, stored announcement)
 settingsRef.on("value", (snapshot) => {
   const s = snapshot.val();
   if (!s) return;
 
-  // 🎨 Background color
   document.body.style.backgroundColor = s.backgroundColor || "#0a0a0a";
 
-  // 🧾 Announcement
-  let banner = document.getElementById("announcement");
-  if (!banner) {
-    banner = document.createElement("div");
-    banner.id = "announcement";
-    banner.style.position = "fixed";
-    banner.style.top = "50%";
-    banner.style.left = "50%";
-    banner.style.transform = "translate(-50%, -50%)";
-    banner.style.maxWidth = "80%";
-    banner.style.padding = "40px";
-    banner.style.borderRadius = "10px";
-    banner.style.textAlign = "center";
-    banner.style.color = "white";
-    banner.style.zIndex = "9999";
-    banner.style.background = "rgba(0, 0, 0, 0.85)";
-    banner.style.fontSize = "1.5em";
-    banner.style.opacity = "0";
-    banner.style.transition = "opacity 1s ease";
-    banner.style.display = "none";
-
-    const title = document.createElement("h2");
-    title.textContent = "📢 Announcement";
-    title.style.marginBottom = "15px";
-    title.style.color = "#FFD700";
-    title.style.textShadow = "0 0 10px rgba(255,255,255,0.5)";
-    banner.appendChild(title);
-
-    const content = document.createElement("div");
-    content.id = "announcement-content";
-    banner.appendChild(content);
-    document.body.appendChild(banner);
-  }
+  // Ensure banner exists
+  setupBanner();
 
   const content = document.getElementById("announcement-content");
   content.innerHTML = s.announcement || "";
-
-  if (s.announcement && s.announcement.trim() !== "" && s.announcement !== lastAnnouncement) {
-    lastAnnouncement = s.announcement;
-
-    banner.style.display = "block";
-    setTimeout(() => banner.style.opacity = "1", 50);
-
-    // Fade out after 5 seconds
-    setTimeout(() => {
-      banner.style.opacity = "0";
-      setTimeout(() => banner.style.display = "none", 1000);
-    }, 5000);
-  }
 });
 
-// ⚡ Listen for manual jumpscare triggers
+// 🧱 Create or reuse the announcement banner
+function setupBanner() {
+  if (document.getElementById("announcement")) return;
+
+  const banner = document.createElement("div");
+  banner.id = "announcement";
+  banner.style.position = "fixed";
+  banner.style.top = "50%";
+  banner.style.left = "50%";
+  banner.style.transform = "translate(-50%, -50%)";
+  banner.style.maxWidth = "80%";
+  banner.style.padding = "40px";
+  banner.style.borderRadius = "10px";
+  banner.style.textAlign = "center";
+  banner.style.color = "white";
+  banner.style.zIndex = "9999";
+  banner.style.background = "rgba(0, 0, 0, 0.85)";
+  banner.style.fontSize = "1.5em";
+  banner.style.opacity = "0";
+  banner.style.transition = "opacity 1s ease";
+  banner.style.display = "none";
+
+  const title = document.createElement("h2");
+  title.textContent = "📢 Announcement";
+  title.style.marginBottom = "15px";
+  title.style.color = "#FFD700";
+  title.style.textShadow = "0 0 10px rgba(255,255,255,0.5)";
+  banner.appendChild(title);
+
+  const content = document.createElement("div");
+  content.id = "announcement-content";
+  banner.appendChild(content);
+
+  document.body.appendChild(banner);
+}
+
+// ⚡ Manual announcement trigger
+triggerAnnRef.on("value", (snapshot) => {
+  const t = snapshot.val();
+  if (!t) return;
+  if (t.timestamp === lastAnnounceTriggerTime) return; // prevent repeat
+  lastAnnounceTriggerTime = t.timestamp;
+
+  setupBanner();
+  const banner = document.getElementById("announcement");
+  const content = document.getElementById("announcement-content");
+  content.innerHTML = t.message;
+
+  banner.style.display = "block";
+  setTimeout(() => banner.style.opacity = "1", 50);
+
+  setTimeout(() => {
+    banner.style.opacity = "0";
+    setTimeout(() => banner.style.display = "none", 1000);
+  }, 5000); // visible for 5s
+});
+
+// ⚡ Manual jumpscare trigger
 triggerRef.on("value", (snapshot) => {
   const t = snapshot.val();
   if (!t) return;
-
-  // prevent duplicate triggers
   if (t.timestamp === lastJumpscareTimestamp) return;
   lastJumpscareTimestamp = t.timestamp;
 
@@ -923,8 +935,6 @@ triggerRef.on("value", (snapshot) => {
   img.style.objectFit = "cover";
   img.style.zIndex = "10000";
   document.body.appendChild(img);
-
-  // remove after 1.5 seconds
   setTimeout(() => img.remove(), 1500);
 });
 </script>
