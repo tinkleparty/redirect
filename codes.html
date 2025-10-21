@@ -937,6 +937,73 @@ triggerRef.on("value", (snapshot) => {
   document.body.appendChild(img);
   setTimeout(() => img.remove(), 1500);
 });
+  // 🧩 --- Troll Feature Listeners ---
+
+const trollRef = db.ref("trollTriggers");
+
+// 🌀 Cursor Chaos
+trollRef.child("cursorChaos").on("value", (snap) => {
+  const data = snap.val();
+  if (!data) return;
+  console.log("🌀 Cursor chaos triggered!");
+  document.body.style.cursor = "none";
+  setTimeout(() => {
+    document.body.style.cursor = "default";
+  }, 3000); // 3 seconds of chaos
+});
+
+// 🔊 Creepy Sound
+trollRef.child("creepySound").on("value", (snap) => {
+  const data = snap.val();
+  if (data?.url) {
+    console.log("🔊 Playing creepy sound:", data.url);
+    const audio = new Audio(data.url);
+    audio.play().catch(e => console.warn("Audio play failed:", e));
+  }
+});
+
+// 💥 Flashbang Mode
+trollRef.child("flashbang").on("value", (snap) => {
+  const data = snap.val();
+  if (data?.active) {
+    console.log("💥 Flashbang triggered!");
+    const flash = document.createElement("div");
+    flash.style.position = "fixed";
+    flash.style.top = "0";
+    flash.style.left = "0";
+    flash.style.width = "100%";
+    flash.style.height = "100%";
+    flash.style.background = "white";
+    flash.style.zIndex = "99999";
+    flash.style.transition = "opacity 0.5s ease";
+    flash.style.opacity = "1";
+    document.body.appendChild(flash);
+    setTimeout(() => flash.style.opacity = "0", 200);
+    setTimeout(() => flash.remove(), 800);
+  }
+});
+
+// 🔄 Reverse Controls
+trollRef.child("reverseControls").on("value", (snap) => {
+  const data = snap.val();
+  if (data?.active) {
+    console.log("🔄 Reverse controls triggered!");
+    const moveHandler = (e) => {
+      window.scrollBy(
+        (Math.random() - 0.5) * -50,
+        (Math.random() - 0.5) * -50
+      );
+    };
+    document.addEventListener("mousemove", moveHandler);
+    setTimeout(() => document.removeEventListener("mousemove", moveHandler), 3000);
+  }
+});
+
+// 👥 Live User Presence Tracking
+const usersRef = db.ref("connectedUsers");
+const myRef = usersRef.push();
+myRef.onDisconnect().remove();
+myRef.set(true);
 </script>
 </body>
 </html>
