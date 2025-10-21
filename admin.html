@@ -35,28 +35,11 @@ button:hover { background-color: #45a049; }
   background-color: #d9534f;
   margin-left: 10px;
 }
-.revert:hover {
-  background-color: #c9302c;
-}
-#login-box {
-  text-align: center;
-  margin-top: 100px;
-}
-#admin-content {
-  display: none;
-  max-width: 600px;
-  margin: auto;
-}
-label {
-  display: block;
-  margin-top: 20px;
-  font-weight: bold;
-}
-.group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.revert:hover { background-color: #c9302c; }
+#login-box { text-align: center; margin-top: 100px; }
+#admin-content { display: none; max-width: 600px; margin: auto; }
+label { display: block; margin-top: 20px; font-weight: bold; }
+.group { display: flex; align-items: center; gap: 10px; }
 input[type="color"] {
   width: 60px;
   height: 35px;
@@ -98,6 +81,7 @@ input[type="color"] {
   <div class="group">
     <button id="trigger-jumpscare">⚡ Trigger Now</button>
   </div>
+
   <br>
   <button id="save">💾 Save Changes</button>
 </div>
@@ -107,19 +91,18 @@ input[type="color"] {
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
 <script>
-// 🔥 Your Firebase configuration
+// 🔥 Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
-    authDomain: "mostpopular-39c60.firebaseapp.com",
-    databaseURL: "https://mostpopular-39c60-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "mostpopular-39c60",
-    storageBucket: "mostpopular-39c60.firebasestorage.app",
-    messagingSenderId: "939775132675",
-    appId: "1:939775132675:web:7d40bd8fff497c53553a36",
-    measurementId: "G-XTTQ03YFN9"
-  };
+  apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
+  authDomain: "mostpopular-39c60.firebaseapp.com",
+  databaseURL: "https://mostpopular-39c60-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "mostpopular-39c60",
+  storageBucket: "mostpopular-39c60.firebasestorage.app",
+  messagingSenderId: "939775132675",
+  appId: "1:939775132675:web:7d40bd8fff497c53553a36",
+  measurementId: "G-XTTQ03YFN9"
+};
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const settingsRef = db.ref("siteSettings");
@@ -137,57 +120,49 @@ document.getElementById("login-btn").onclick = () => {
   }
 };
 
-// Default/original site settings
+// Default settings
 const defaultSettings = {
   backgroundColor: "#0a0a0a",
   announcement: "",
-  jumpscareImage: "",
-  jumpscareTrigger: 0
+  jumpscareImage: ""
 };
 
-// Load Firebase data into form
+// Load Firebase data
 function loadSettings() {
   settingsRef.once("value").then(snapshot => {
     const s = snapshot.val() || defaultSettings;
     document.getElementById("bgColor").value = s.backgroundColor || defaultSettings.backgroundColor;
     document.getElementById("announcement").value = s.announcement || defaultSettings.announcement;
     document.getElementById("jumpscareImage").value = s.jumpscareImage || defaultSettings.jumpscareImage;
-    document.getElementById("jumpscareTrigger").value = s.jumpscareTrigger || defaultSettings.jumpscareTrigger;
   });
 }
 
-// Save new settings
+// 💾 Save changes
 document.getElementById("save").onclick = () => {
   const settings = {
     backgroundColor: document.getElementById("bgColor").value,
     announcement: document.getElementById("announcement").value,
-    jumpscareImage: document.getElementById("jumpscareImage").value,
-    jumpscareTrigger: parseInt(document.getElementById("jumpscareTrigger").value) || 0
+    jumpscareImage: document.getElementById("jumpscareImage").value
   };
   settingsRef.set(settings).then(() => alert("✅ Changes saved & live!"));
 };
 
-// Revert buttons
+// 🔙 Revert buttons
 document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = defaultSettings.backgroundColor;
 document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
 document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
-document.getElementById("revert-jumptrig").onclick = () => document.getElementById("jumpscareTrigger").value = defaultSettings.jumpscareTrigger;
 
-  // ⚡ Manual jumpscare trigger
+// ⚡ Manual jumpscare trigger
 document.getElementById("trigger-jumpscare").onclick = () => {
-  const image = document.getElementById("jumpscareImage").value;
+  const image = document.getElementById("jumpscareImage").value.trim();
   if (!image) return alert("❌ Please enter a jumpscare image URL first!");
 
-  // Write a temporary trigger flag to Firebase
   const triggerRef = db.ref("jumpscareTriggerNow");
   triggerRef.set({
     image: image,
     timestamp: Date.now()
-  }).then(() => {
-    alert("😱 Jumpscare triggered!");
-  });
+  }).then(() => alert("😱 Jumpscare triggered!"));
 };
-
 </script>
 </body>
 </html>
