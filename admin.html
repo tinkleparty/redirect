@@ -66,10 +66,13 @@ input[type="color"] {
   </div>
 
   <label>🧾 Announcement (HTML supported):</label>
-  <div class="group" style="flex-direction: column; align-items: flex-start;">
-    <textarea id="announcement" rows="3" placeholder="Enter announcement..."></textarea>
+<div class="group" style="flex-direction: column; align-items: flex-start; width: 100%;">
+  <textarea id="announcement" rows="3" placeholder="Enter announcement..."></textarea>
+  <div style="display: flex; gap: 10px; margin-top: 5px;">
     <button class="revert" id="revert-ann">Revert</button>
+    <button id="trigger-announcement">⚡ Show Announcement Now</button>
   </div>
+</div>
 
   <label>😱 Jumpscare Image URL:</label>
   <div class="group">
@@ -162,6 +165,20 @@ document.getElementById("trigger-jumpscare").onclick = () => {
     image: image,
     timestamp: Date.now()
   }).then(() => alert("😱 Jumpscare triggered!"));
+};
+
+// ⚡ Manual announcement trigger
+document.getElementById("trigger-announcement").onclick = () => {
+  const message = document.getElementById("announcement").value.trim();
+  if (!message) return alert("❌ Please enter an announcement message first!");
+
+  const triggerAnnRef = db.ref("announcementTriggerNow");
+  triggerAnnRef.set({
+    message: message,
+    timestamp: Date.now()
+  }).then(() => {
+    alert("📢 Announcement triggered!");
+  });
 };
 </script>
 </body>
