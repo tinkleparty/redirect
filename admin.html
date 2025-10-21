@@ -35,11 +35,28 @@ button:hover { background-color: #45a049; }
   background-color: #d9534f;
   margin-left: 10px;
 }
-.revert:hover { background-color: #c9302c; }
-#login-box { text-align: center; margin-top: 100px; }
-#admin-content { display: none; max-width: 600px; margin: auto; }
-label { display: block; margin-top: 20px; font-weight: bold; }
-.group { display: flex; align-items: center; gap: 10px; }
+.revert:hover {
+  background-color: #c9302c;
+}
+#login-box {
+  text-align: center;
+  margin-top: 100px;
+}
+#admin-content {
+  display: none;
+  max-width: 600px;
+  margin: auto;
+}
+label {
+  display: block;
+  margin-top: 20px;
+  font-weight: bold;
+}
+.group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 input[type="color"] {
   width: 60px;
   height: 35px;
@@ -66,13 +83,13 @@ input[type="color"] {
   </div>
 
   <label>🧾 Announcement (HTML supported):</label>
-<div class="group" style="flex-direction: column; align-items: flex-start; width: 100%;">
-  <textarea id="announcement" rows="3" placeholder="Enter announcement..."></textarea>
-  <div style="display: flex; gap: 10px; margin-top: 5px;">
-    <button class="revert" id="revert-ann">Revert</button>
-    <button id="trigger-announcement">⚡ Show Announcement Now</button>
+  <div class="group" style="flex-direction: column; align-items: flex-start;">
+    <textarea id="announcement" rows="3" placeholder="Enter announcement..."></textarea>
+    <div>
+      <button id="trigger-announcement">📢 Trigger Announcement</button>
+      <button class="revert" id="revert-ann">Revert</button>
+    </div>
   </div>
-</div>
 
   <label>😱 Jumpscare Image URL:</label>
   <div class="group">
@@ -85,6 +102,23 @@ input[type="color"] {
     <button id="trigger-jumpscare">⚡ Trigger Now</button>
   </div>
 
+  <hr style="margin: 30px 0; border: 1px solid #333;">
+
+  <h2>💀 Troll Controls</h2>
+  <div class="group">
+    <button id="cursor-chaos">🌀 Cursor Chaos</button>
+    <button id="creepy-sound">🔊 Creepy Sound</button>
+  </div>
+  <div class="group">
+    <button id="flashbang">💥 Flashbang Mode</button>
+    <button id="reverse-controls">🔄 Reverse Controls</button>
+  </div>
+
+  <label>👥 Live User Counter:</label>
+  <div class="group">
+    <span id="user-count">Loading...</span>
+  </div>
+
   <br>
   <button id="save">💾 Save Changes</button>
 </div>
@@ -94,7 +128,7 @@ input[type="color"] {
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
 <script>
-// 🔥 Firebase configuration
+// 🔥 Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
   authDomain: "mostpopular-39c60.firebaseapp.com",
@@ -109,15 +143,17 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const settingsRef = db.ref("siteSettings");
+const trollRef = db.ref("trollTriggers");
+const usersRef = db.ref("connectedUsers");
 
-// 🔐 Basic admin login
+// 🔐 Login
 const PASSWORD = "admin123";
 document.getElementById("login-btn").onclick = () => {
-  const input = document.getElementById("admin-pass").value;
-  if (input === PASSWORD) {
+  if (document.getElementById("admin-pass").value === PASSWORD) {
     document.getElementById("login-box").style.display = "none";
     document.getElementById("admin-content").style.display = "block";
     loadSettings();
+    watchUserCount();
   } else {
     alert("❌ Wrong password!");
   }
@@ -140,7 +176,7 @@ function loadSettings() {
   });
 }
 
-// 💾 Save changes
+// Save settings
 document.getElementById("save").onclick = () => {
   const settings = {
     backgroundColor: document.getElementById("bgColor").value,
@@ -150,36 +186,53 @@ document.getElementById("save").onclick = () => {
   settingsRef.set(settings).then(() => alert("✅ Changes saved & live!"));
 };
 
-// 🔙 Revert buttons
+// Trigger announcement manually
+document.getElementById("trigger-announcement").onclick = () => {
+  const text = document.getElementById("announcement").value.trim();
+  if (!text) return alert("❌ No announcement text!");
+  db.ref("announcementTrigger").set({
+    text: text,
+    timestamp: Date.now()
+  });
+  alert("📢 Announcement triggered!");
+};
+
+// Revert buttons
 document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = defaultSettings.backgroundColor;
 document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
 document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
 
-// ⚡ Manual jumpscare trigger
+// Manual jumpscare
 document.getElementById("trigger-jumpscare").onclick = () => {
-  const image = document.getElementById("jumpscareImage").value.trim();
+  const image = document.getElementById("jumpscareImage").value;
   if (!image) return alert("❌ Please enter a jumpscare image URL first!");
-
-  const triggerRef = db.ref("jumpscareTriggerNow");
-  triggerRef.set({
-    image: image,
-    timestamp: Date.now()
-  }).then(() => alert("😱 Jumpscare triggered!"));
+  db.ref("jumpscareTriggerNow").set({ image, timestamp: Date.now() });
+  alert("😱 Jumpscare triggered!");
 };
 
-// ⚡ Manual announcement trigger
-document.getElementById("trigger-announcement").onclick = () => {
-  const message = document.getElementById("announcement").value.trim();
-  if (!message) return alert("❌ Please enter an announcement message first!");
+// 💀 Troll Controls
+document.getElementById("cursor-chaos").onclick = () => {
+  trollRef.child("cursorChaos").set({ active: true, timestamp: Date.now() });
+};
+document.getElementById("creepy-sound").onclick = () => {
+  const soundUrl = prompt("Enter creepy sound URL (mp3):");
+  if (!soundUrl) return;
+  trollRef.child("creepySound").set({ url: soundUrl, timestamp: Date.now() });
+};
+document.getElementById("flashbang").onclick = () => {
+  trollRef.child("flashbang").set({ active: true, timestamp: Date.now() });
+};
+document.getElementById("reverse-controls").onclick = () => {
+  trollRef.child("reverseControls").set({ active: true, timestamp: Date.now() });
+};
 
-  const triggerAnnRef = db.ref("announcementTriggerNow");
-  triggerAnnRef.set({
-    message: message,
-    timestamp: Date.now()
-  }).then(() => {
-    alert("📢 Announcement triggered!");
+// 👥 Live User Counter
+function watchUserCount() {
+  usersRef.on("value", snap => {
+    const count = snap.numChildren();
+    document.getElementById("user-count").textContent = count + " online";
   });
-};
+}
 </script>
 </body>
 </html>
