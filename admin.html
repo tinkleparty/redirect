@@ -38,7 +38,6 @@ button:hover { background-color: #45a049; }
 .revert:hover {
   background-color: #c9302c;
 }
-
 #login-box {
   text-align: center;
   margin-top: 100px;
@@ -80,7 +79,6 @@ input[type="color"] {
   <label>🎨 Background Color:</label>
   <div class="group">
     <input type="color" id="bgColor">
-
     <button class="revert" id="revert-bg">Revert</button>
   </div>
 
@@ -88,22 +86,17 @@ input[type="color"] {
   <div class="group" style="flex-direction: column; align-items: flex-start;">
     <textarea id="announcement" rows="3" placeholder="Enter announcement..."></textarea>
     <button class="revert" id="revert-ann">Revert</button>
-
-
-
   </div>
 
   <label>😱 Jumpscare Image URL:</label>
   <div class="group">
     <input type="text" id="jumpscareImage" placeholder="https://...">
-
     <button class="revert" id="revert-jumpimg">Revert</button>
   </div>
 
   <label>⏱️ Jumpscare Trigger (seconds):</label>
   <div class="group">
     <input type="number" id="jumpscareTrigger" min="0" placeholder="e.g. 10">
-
     <button class="revert" id="revert-jumptrig">Revert</button>
   </div>
 
@@ -135,7 +128,6 @@ const settingsRef = db.ref("siteSettings");
 
 // 🔐 Basic admin login
 const PASSWORD = "admin123";
-
 document.getElementById("login-btn").onclick = () => {
   const input = document.getElementById("admin-pass").value;
   if (input === PASSWORD) {
@@ -175,14 +167,6 @@ document.getElementById("save").onclick = () => {
     jumpscareTrigger: parseInt(document.getElementById("jumpscareTrigger").value) || 0
   };
   settingsRef.set(settings).then(() => alert("✅ Changes saved & live!"));
-
-
-
-
-
-
-
-
 };
 
 // Revert buttons
@@ -190,3 +174,6 @@ document.getElementById("revert-bg").onclick = () => document.getElementById("bg
 document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
 document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
 document.getElementById("revert-jumptrig").onclick = () => document.getElementById("jumpscareTrigger").value = defaultSettings.jumpscareTrigger;
+</script>
+</body>
+</html>
