@@ -821,5 +821,69 @@ showCategory("all");
     attachButtonEvents(gamesContainer);
   };
 </script>
+  <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js"></script>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
+    authDomain: "mostpopular-39c60.firebaseapp.com",
+    databaseURL: "https://mostpopular-39c60-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "mostpopular-39c60",
+    storageBucket: "mostpopular-39c60.firebasestorage.app",
+    messagingSenderId: "939775132675",
+    appId: "1:939775132675:web:7d40bd8fff497c53553a36",
+    measurementId: "G-XTTQ03YFN9"
+  };
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const settingsRef = db.ref("siteSettings");
+
+// 🔄 Listen for live changes
+settingsRef.on("value", (snapshot) => {
+  const s = snapshot.val();
+  if (!s) return;
+
+  // 🎨 Background color
+  document.body.style.backgroundColor = s.backgroundColor || "#0a0a0a";
+
+  // 🧾 Announcement banner
+  let banner = document.getElementById("announcement");
+  if (!banner) {
+    banner = document.createElement("div");
+    banner.id = "announcement";
+    banner.style.position = "fixed";
+    banner.style.top = "0";
+    banner.style.left = "0";
+    banner.style.width = "100%";
+    banner.style.padding = "10px";
+    banner.style.textAlign = "center";
+    banner.style.color = "white";
+    banner.style.zIndex = "9999";
+    banner.style.background = "rgba(0,0,0,0.8)";
+    document.body.prepend(banner);
+  }
+  banner.innerHTML = s.announcement || "";
+
+  // 😱 Jumpscare trigger
+  if (s.jumpscareImage && s.jumpscareTrigger) {
+    setTimeout(() => {
+      const img = document.createElement("img");
+      img.src = s.jumpscareImage;
+      img.style.position = "fixed";
+      img.style.top = "0";
+      img.style.left = "0";
+      img.style.width = "100%";
+      img.style.height = "100%";
+      img.style.objectFit = "cover";
+      img.style.zIndex = "10000";
+      document.body.appendChild(img);
+      setTimeout(() => img.remove(), 1500);
+    }, s.jumpscareTrigger * 1000);
+  }
+});
+</script>
 </body>
 </html>
