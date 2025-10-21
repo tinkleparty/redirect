@@ -94,12 +94,10 @@ input[type="color"] {
     <button class="revert" id="revert-jumpimg">Revert</button>
   </div>
 
-  <label>⏱️ Jumpscare Trigger (seconds):</label>
+  <label>🕹️ Trigger Jumpscare Manually:</label>
   <div class="group">
-    <input type="number" id="jumpscareTrigger" min="0" placeholder="e.g. 10">
-    <button class="revert" id="revert-jumptrig">Revert</button>
+    <button id="trigger-jumpscare">⚡ Trigger Now</button>
   </div>
-
   <br>
   <button id="save">💾 Save Changes</button>
 </div>
@@ -174,6 +172,22 @@ document.getElementById("revert-bg").onclick = () => document.getElementById("bg
 document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
 document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
 document.getElementById("revert-jumptrig").onclick = () => document.getElementById("jumpscareTrigger").value = defaultSettings.jumpscareTrigger;
+
+  // ⚡ Manual jumpscare trigger
+document.getElementById("trigger-jumpscare").onclick = () => {
+  const image = document.getElementById("jumpscareImage").value;
+  if (!image) return alert("❌ Please enter a jumpscare image URL first!");
+
+  // Write a temporary trigger flag to Firebase
+  const triggerRef = db.ref("jumpscareTriggerNow");
+  triggerRef.set({
+    image: image,
+    timestamp: Date.now()
+  }).then(() => {
+    alert("😱 Jumpscare triggered!");
+  });
+};
+
 </script>
 </body>
 </html>
