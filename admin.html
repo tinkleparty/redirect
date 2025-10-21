@@ -33,11 +33,8 @@ button {
 button:hover { background-color: #45a049; }
 .revert {
   background-color: #d9534f;
-  margin-left: 10px;
 }
-.revert:hover {
-  background-color: #c9302c;
-}
+.revert:hover { background-color: #c9302c; }
 #login-box {
   text-align: center;
   margin-top: 100px;
@@ -76,58 +73,59 @@ input[type="color"] {
 <div id="admin-content">
   <h1>🛠️ Live Site Controls</h1>
 
-  <label>🎨 Background Color:</label>
+  <label>🎨 UI Background Color:</label>
   <div class="group">
     <input type="color" id="bgColor">
+    <button id="apply-bg">Apply</button>
     <button class="revert" id="revert-bg">Revert</button>
   </div>
 
   <label>🧾 Announcement (HTML supported):</label>
   <div class="group" style="flex-direction: column; align-items: flex-start;">
     <textarea id="announcement" rows="3" placeholder="Enter announcement..."></textarea>
-    <button class="revert" id="revert-ann">Revert</button>
+    <div>
+      <button id="apply-ann">Apply</button>
+      <button class="revert" id="revert-ann">Revert</button>
+    </div>
   </div>
 
   <label>😱 Jumpscare Image URL:</label>
   <div class="group">
     <input type="text" id="jumpscareImage" placeholder="https://...">
+    <button id="apply-jump">Apply</button>
     <button class="revert" id="revert-jumpimg">Revert</button>
   </div>
 
   <label>⏱️ Jumpscare Trigger (seconds):</label>
   <div class="group">
     <input type="number" id="jumpscareTrigger" min="0" placeholder="e.g. 10">
+    <button id="apply-jumptrig">Apply</button>
     <button class="revert" id="revert-jumptrig">Revert</button>
   </div>
-
-  <br>
-  <button id="save">💾 Save Changes</button>
 </div>
 
-<!-- Firebase v9 compat build -->
+<!-- Firebase compat build -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
 <script>
-// 🔥 Your Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
-    authDomain: "mostpopular-39c60.firebaseapp.com",
-    databaseURL: "https://mostpopular-39c60-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "mostpopular-39c60",
-    storageBucket: "mostpopular-39c60.firebasestorage.app",
-    messagingSenderId: "939775132675",
-    appId: "1:939775132675:web:7d40bd8fff497c53553a36",
-    measurementId: "G-XTTQ03YFN9"
-  };
+  apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
+  authDomain: "mostpopular-39c60.firebaseapp.com",
+  databaseURL: "https://mostpopular-39c60-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "mostpopular-39c60",
+  storageBucket: "mostpopular-39c60.firebasestorage.app",
+  messagingSenderId: "939775132675",
+  appId: "1:939775132675:web:7d40bd8fff497c53553a36",
+  measurementId: "G-XTTQ03YFN9"
+};
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const settingsRef = db.ref("siteSettings");
 
-// 🔐 Basic admin login
 const PASSWORD = "admin123";
+
 document.getElementById("login-btn").onclick = () => {
   const input = document.getElementById("admin-pass").value;
   if (input === PASSWORD) {
@@ -139,7 +137,7 @@ document.getElementById("login-btn").onclick = () => {
   }
 };
 
-// Default/original site settings
+// default/original site settings
 const defaultSettings = {
   backgroundColor: "#0a0a0a",
   announcement: "",
@@ -158,22 +156,73 @@ function loadSettings() {
   });
 }
 
-// Save new settings
-document.getElementById("save").onclick = () => {
-  const settings = {
-    backgroundColor: document.getElementById("bgColor").value,
-    announcement: document.getElementById("announcement").value,
-    jumpscareImage: document.getElementById("jumpscareImage").value,
-    jumpscareTrigger: parseInt(document.getElementById("jumpscareTrigger").value) || 0
-  };
-  settingsRef.set(settings).then(() => alert("✅ Changes saved & live!"));
+// Update a single field in Firebase
+function updateSetting(key, value) {
+  const update = {};
+  update[key] = value;
+  settingsRef.update(update).then(() => console.log("Updated:", key, value));
+}
+
+// 🎨 Apply background color
+document.getElementById("apply-bg").onclick = () => {
+  const color = document.getElementById("bgColor").value;
+  updateSetting("backgroundColor", color);
+  alert("✅ UI background color updated!");
+};
+document.getElementById("revert-bg").onclick = () => {
+  document.getElementById("bgColor").value = defaultSettings.backgroundColor;
+  updateSetting("backgroundColor", defaultSettings.backgroundColor);
+  alert("↩️ Background reverted!");
 };
 
-// Revert buttons
-document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = defaultSettings.backgroundColor;
-document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
-document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
-document.getElementById("revert-jumptrig").onclick = () => document.getElementById("jumpscareTrigger").value = defaultSettings.jumpscareTrigger;
+// 🧾 Announcement
+document.getElementById("apply-ann").onclick = () => {
+  const ann = document.getElementById("announcement").value;
+  updateSetting("announcement", ann);
+  alert("✅ Announcement updated!");
+};
+document.getElementById("revert-ann").onclick = () => {
+  document.getElementById("announcement").value = defaultSettings.announcement;
+  updateSetting("announcement", defaultSettings.announcement);
+  alert("↩️ Announcement reverted!");
+};
+
+// 😱 Jumpscare
+document.getElementById("apply-jump").onclick = () => {
+  const img = document.getElementById("jumpscareImage").value;
+  updateSetting("jumpscareImage", img);
+  // Show preview jump scare
+  if (img) {
+    const scare = document.createElement("img");
+    scare.src = img;
+    scare.style.position = "fixed";
+    scare.style.top = "0";
+    scare.style.left = "0";
+    scare.style.width = "100%";
+    scare.style.height = "100%";
+    scare.style.objectFit = "cover";
+    scare.style.zIndex = "9999";
+    document.body.appendChild(scare);
+    setTimeout(() => scare.remove(), 1500);
+  }
+};
+document.getElementById("revert-jumpimg").onclick = () => {
+  document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
+  updateSetting("jumpscareImage", defaultSettings.jumpscareImage);
+  alert("↩️ Jumpscare image reverted!");
+};
+
+// ⏱️ Jumpscare trigger
+document.getElementById("apply-jumptrig").onclick = () => {
+  const trig = parseInt(document.getElementById("jumpscareTrigger").value) || 0;
+  updateSetting("jumpscareTrigger", trig);
+  alert("✅ Jumpscare trigger updated!");
+};
+document.getElementById("revert-jumptrig").onclick = () => {
+  document.getElementById("jumpscareTrigger").value = defaultSettings.jumpscareTrigger;
+  updateSetting("jumpscareTrigger", defaultSettings.jumpscareTrigger);
+  alert("↩️ Trigger reverted!");
+};
 </script>
 </body>
 </html>
