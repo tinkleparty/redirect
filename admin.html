@@ -107,7 +107,10 @@ input[type="color"] {
   <h2>💀 Troll Controls</h2>
   <div class="group">
     <button id="cursor-chaos">🌀 Cursor Chaos</button>
-    <button id="creepy-sound">🔊 Creepy Sound</button>
+  </div>
+  <div class="group" style="flex-direction: column; align-items: flex-start;">
+    <button id="choose-sound">🎵 Play Sound</button>
+    <div id="sound-menu" style="display:none; background:#222; padding:10px; border-radius:8px; margin-top:10px; max-height:200px; overflow:auto;"></div>
   </div>
   <div class="group">
     <button id="flashbang">💥 Flashbang Mode</button>
@@ -233,6 +236,36 @@ function watchUserCount() {
     document.getElementById("user-count").textContent = count + " online";
   });
 }
+const soundMenu = document.getElementById("sound-menu");
+const chooseSoundBtn = document.getElementById("choose-sound");
+
+// List your .mp3 files here
+const soundFiles = [
+  "clashintro.mp3",
+  "rainingtacos.mp3",
+  "brainrot.mp3"
+];
+
+// Show menu when button is clicked
+chooseSoundBtn.onclick = () => {
+  soundMenu.innerHTML = "";
+  soundFiles.forEach(file => {
+    const btn = document.createElement("button");
+    btn.textContent = "▶️ " + file;
+    btn.style.display = "block";
+    btn.style.margin = "5px 0";
+    btn.onclick = () => {
+      trollRef.child("creepySound").set({
+        url: file,
+        timestamp: Date.now()
+      });
+      alert(`🔊 ${file} triggered!`);
+    };
+    soundMenu.appendChild(btn);
+  });
+  soundMenu.style.display = soundMenu.style.display === "none" ? "block" : "none";
+};
+
 </script>
 </body>
 </html>
