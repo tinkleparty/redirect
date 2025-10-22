@@ -1059,7 +1059,7 @@ document.head.appendChild(style);
 
 function startCrabRave() {
   const crabURL = "https://media3.giphy.com/media/v1.Y2lkPTZjMDliOTUyYXJjYTZ2YWxsdTU4bjZleW0yczdxYmhjcmVjMnJob2cwOHlpNTlieiZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/NitS36ljNxQcfT0QIT/200.gif";
-  const pageHeight = document.body.scrollHeight;
+  const pageHeight = Math.max(document.body.scrollHeight, window.innerHeight);
   const raveContainer = document.createElement("div");
   raveContainer.id = "crab-rave";
   Object.assign(raveContainer.style, {
@@ -1073,14 +1073,14 @@ function startCrabRave() {
   });
   document.body.appendChild(raveContainer);
 
-  // === Create colorful spotlight overlay ===
+  // === Create full-page spotlights ===
   const spotlight = document.createElement("div");
   Object.assign(spotlight.style, {
-    position: "fixed",
+    position: "absolute", // scrolls with page
     top: "0",
     left: "0",
-    width: "100vw",
-    height: "100vh",
+    width: "100%",
+    height: pageHeight + "px",
     pointerEvents: "none",
     zIndex: "99999",
     background: "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, transparent 70%)",
@@ -1089,8 +1089,8 @@ function startCrabRave() {
   });
   document.body.appendChild(spotlight);
 
-  // === Create the crab crowd (fewer, spread out, full scroll) ===
-  const crabCount = 50; // reasonable number for spacing
+  // === Create crab crowd ===
+  const crabCount = 50;
   for (let i = 0; i < crabCount; i++) {
     const crab = document.createElement("img");
     crab.src = crabURL;
@@ -1100,6 +1100,7 @@ function startCrabRave() {
 
     const x = Math.random() * 95 + 2.5;
     const y = Math.random() * pageHeight;
+
     const scale = 0.3 + Math.random() * 0.4;
 
     Object.assign(crab.style, {
@@ -1112,13 +1113,19 @@ function startCrabRave() {
     raveContainer.appendChild(crab);
   }
 
-  // === Beat sync: spotlight + crab bounce + page bounce ===
+  // === Beat sync: page scale + crab bounce + spotlight color ===
   const colors = ["#ff00ff", "#00ffff", "#ffcc00", "#ff69b4", "#00ff00"];
   let beatUp = false;
   let colorIndex = 0;
 
   const beatInterval = setInterval(() => {
     beatUp = !beatUp;
+
+    // Page scaling bounce
+    const scale = beatUp ? 1.03 : 1; // grow slightly on beat
+    document.body.style.transform = `scale(${scale})`;
+    document.body.style.transformOrigin = "center top";
+    document.body.style.transition = "transform 0.2s ease";
 
     // Spotlight moves randomly
     const spotlightX = Math.random() * 100;
@@ -1132,17 +1139,12 @@ function startCrabRave() {
       const bounce = `translateY(${beatUp ? -6 : 0}px)`;
       crab.style.transform = crab.style.transform.replace(/translateY\(.*?\)/, "") + ` ${bounce}`;
     });
-
-    // Page bounce per beat
-    const pageBounce = beatUp ? -10 : 0; // pixels to move up
-    document.body.style.transform = `translateY(${pageBounce}px)`;
-    document.body.style.transition = "transform 0.15s ease";
   }, 480); // ~125 BPM
 
   // === End effect after ~17s ===
   setTimeout(() => {
     clearInterval(beatInterval);
-    document.body.style.transform = "translateY(0)";
+    document.body.style.transform = "scale(1)";
     raveContainer.remove();
     spotlight.remove();
   }, 17000);
