@@ -965,24 +965,12 @@ showCategory("all");
     }, 3000);
   });
 
-  // === Creepy Sound
-  trollRef.child("creepySound").on("value", (snap) => {
-    const data = snap.val();
-    if (!data || typeof data.timestamp !== "number") return;
-
-    if (!initialSoundLoaded) {
-      lastCreepySound = data.timestamp;
-      initialSoundLoaded = true;
-      return;
-    }
-
-    if (data.timestamp === lastCreepySound) return;
-    lastCreepySound = data.timestamp;
-
-    if (data.url) {
-      const audio = new Audio(data.url);
-      audio.play().catch(e => console.warn("Audio play failed:", e));
-    }
+  trollRef.child("creepySound").on("value", snap => {
+  const data = snap.val();
+  if (data && data.url && Date.now() - data.timestamp < 10000) {
+    const audio = new Audio(data.url); // relative to codes.html
+    audio.play().catch(console.error);
+  }
   });
 
   // === Flashbang
