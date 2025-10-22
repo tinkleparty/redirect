@@ -67,7 +67,45 @@
 </head>
 <body>
 
-<h2>💀 Troll Controls</h2>
+<div id="login-box">
+  <h2>🔒 Admin Login</h2>
+  <input type="password" id="admin-pass" placeholder="Enter password..." />
+  <button id="login-btn">Login</button>
+</div>
+
+<div id="admin-content">
+  <h1>🛠️ Live Site Controls</h1>
+
+  <label>🎨 Background Color:</label>
+  <div class="group">
+    <input type="color" id="bgColor">
+    <button class="revert" id="revert-bg">Revert</button>
+  </div>
+
+  <label>🧾 Announcement (HTML supported):</label>
+  <div class="group" style="flex-direction: column; align-items: flex-start;">
+    <textarea id="announcement" rows="3" placeholder="Enter announcement..."></textarea>
+    <div>
+      <button id="trigger-announcement">📢 Trigger Announcement</button>
+      <button class="revert" id="revert-ann">Revert</button>
+    </div>
+  </div>
+
+  <label>😱 Jumpscare Image URL:</label>
+  <div class="group">
+    <input type="text" id="jumpscareImage" placeholder="https://...">
+    <button class="revert" id="revert-jumpimg">Revert</button>
+  </div>
+
+  <label>🕹️ Trigger Jumpscare Manually:</label>
+  <div class="group">
+    <button id="trigger-jumpscare">⚡ Trigger Now</button>
+  </div>
+
+  <hr style="margin: 30px 0; border: 1px solid #333;">
+
+  <h2>💀 Troll Controls</h2>
+
   <div class="group">
     <button id="cursor-chaos">🌀 Cursor Chaos</button>
   </div>
@@ -80,8 +118,21 @@
   <div class="group">
     <button id="flashbang">💥 Flashbang Mode</button>
     <button id="reverse-controls">🔄 Reverse Controls</button>
-<h2>💀 Troll Controls</h2>
+  </div>
+
+  <label>👥 Live User Counter:</label>
+  <div class="group">
+    <span id="user-count">Loading...</span>
+  </div>
+
+  <br>
+  <button id="save">💾 Save Changes</button>
+</div>
+
+<!-- Firebase v9 compat build -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
 
 <script>
   // 🔥 Firebase config
@@ -98,9 +149,11 @@
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
+
   const settingsRef = db.ref("siteSettings");
   const trollRef = db.ref("trollTriggers");
   const usersRef = db.ref("connectedUsers");
+
 
   // 🔐 Login
   const PASSWORD = "admin123";
@@ -110,10 +163,12 @@
       document.getElementById("admin-content").style.display = "block";
       loadSettings();
       watchUserCount();
+
     } else {
       alert("❌ Wrong password!");
     }
   };
+
 
   const defaultSettings = {
     backgroundColor: "#0a0a0a",
@@ -139,7 +194,6 @@
     settingsRef.set(settings).then(() => alert("✅ Changes saved & live!"));
   };
 
-
   document.getElementById("trigger-announcement").onclick = () => {
     const text = document.getElementById("announcement").value.trim();
     if (!text) return alert("❌ No announcement text!");
@@ -149,6 +203,7 @@
     });
     alert("📢 Announcement triggered!");
   };
+
   document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = defaultSettings.backgroundColor;
   document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
   document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
@@ -177,7 +232,6 @@
       document.getElementById("user-count").textContent = count + " online";
     });
   }
-
   const soundMenu = document.getElementById("sound-menu");
   const chooseSoundBtn = document.getElementById("choose-sound");
   const soundFiles = [
@@ -204,6 +258,7 @@
     });
     soundMenu.style.display = soundMenu.style.display === "none" ? "block" : "none";
   };
+
 </script>
 </body>
 </html>
