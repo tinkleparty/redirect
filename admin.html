@@ -1,69 +1,70 @@
+<!-- 🔥 FIREBASE + ADMIN HTML FIXED -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Admin Panel</title>
-<style>
-body {
-  background-color: #111;
-  color: white;
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 20px;
-}
-h1 { color: #4CAF50; }
-input, textarea {
-  width: 100%;
-  padding: 8px;
-  margin: 10px 0;
-  border-radius: 6px;
-  border: none;
-  outline: none;
-  font-size: 14px;
-}
-button {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-button:hover { background-color: #45a049; }
-.revert {
-  background-color: #d9534f;
-  margin-left: 10px;
-}
-.revert:hover {
-  background-color: #c9302c;
-}
-#login-box {
-  text-align: center;
-  margin-top: 100px;
-}
-#admin-content {
-  display: none;
-  max-width: 600px;
-  margin: auto;
-}
-label {
-  display: block;
-  margin-top: 20px;
-  font-weight: bold;
-}
-.group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-input[type="color"] {
-  width: 60px;
-  height: 35px;
-  padding: 0;
-  border-radius: 4px;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 { color: #4CAF50; }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover { background-color: #45a049; }
+    .revert {
+      background-color: #d9534f;
+      margin-left: 10px;
+    }
+    .revert:hover {
+      background-color: #c9302c;
+    }
+    #login-box {
+      text-align: center;
+      margin-top: 100px;
+    }
+    #admin-content {
+      display: none;
+      max-width: 600px;
+      margin: auto;
+    }
+    label {
+      display: block;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    input[type="color"] {
+      width: 60px;
+      height: 35px;
+      padding: 0;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
 
@@ -108,10 +109,12 @@ input[type="color"] {
   <div class="group">
     <button id="cursor-chaos">🌀 Cursor Chaos</button>
   </div>
+
   <div class="group" style="flex-direction: column; align-items: flex-start;">
     <button id="choose-sound">🎵 Play Sound</button>
     <div id="sound-menu" style="display:none; background:#222; padding:10px; border-radius:8px; margin-top:10px; max-height:200px; overflow:auto;"></div>
   </div>
+
   <div class="group">
     <button id="flashbang">💥 Flashbang Mode</button>
     <button id="reverse-controls">🔄 Reverse Controls</button>
@@ -131,141 +134,128 @@ input[type="color"] {
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
 <script>
-// 🔥 Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
-  authDomain: "mostpopular-39c60.firebaseapp.com",
-  databaseURL: "https://mostpopular-39c60-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "mostpopular-39c60",
-  storageBucket: "mostpopular-39c60.firebasestorage.app",
-  messagingSenderId: "939775132675",
-  appId: "1:939775132675:web:7d40bd8fff497c53553a36",
-  measurementId: "G-XTTQ03YFN9"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const settingsRef = db.ref("siteSettings");
-const trollRef = db.ref("trollTriggers");
-const usersRef = db.ref("connectedUsers");
-
-// 🔐 Login
-const PASSWORD = "admin123";
-document.getElementById("login-btn").onclick = () => {
-  if (document.getElementById("admin-pass").value === PASSWORD) {
-    document.getElementById("login-box").style.display = "none";
-    document.getElementById("admin-content").style.display = "block";
-    loadSettings();
-    watchUserCount();
-  } else {
-    alert("❌ Wrong password!");
-  }
-};
-
-// Default settings
-const defaultSettings = {
-  backgroundColor: "#0a0a0a",
-  announcement: "",
-  jumpscareImage: ""
-};
-
-// Load Firebase data
-function loadSettings() {
-  settingsRef.once("value").then(snapshot => {
-    const s = snapshot.val() || defaultSettings;
-    document.getElementById("bgColor").value = s.backgroundColor || defaultSettings.backgroundColor;
-    document.getElementById("announcement").value = s.announcement || defaultSettings.announcement;
-    document.getElementById("jumpscareImage").value = s.jumpscareImage || defaultSettings.jumpscareImage;
-  });
-}
-
-// Save settings
-document.getElementById("save").onclick = () => {
-  const settings = {
-    backgroundColor: document.getElementById("bgColor").value,
-    announcement: document.getElementById("announcement").value,
-    jumpscareImage: document.getElementById("jumpscareImage").value
+  // 🔥 Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
+    authDomain: "mostpopular-39c60.firebaseapp.com",
+    databaseURL: "https://mostpopular-39c60-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "mostpopular-39c60",
+    storageBucket: "mostpopular-39c60.appspot.com",
+    messagingSenderId: "939775132675",
+    appId: "1:939775132675:web:7d40bd8fff497c53553a36",
+    measurementId: "G-XTTQ03YFN9"
   };
-  settingsRef.set(settings).then(() => alert("✅ Changes saved & live!"));
-};
 
-// Trigger announcement manually
-document.getElementById("trigger-announcement").onclick = () => {
-  const text = document.getElementById("announcement").value.trim();
-  if (!text) return alert("❌ No announcement text!");
-  db.ref("announcementTriggerNow").set({
-    text: text,
-    timestamp: Date.now()
-  });
-  alert("📢 Announcement triggered!");
-};
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const settingsRef = db.ref("siteSettings");
+  const trollRef = db.ref("trollTriggers");
+  const usersRef = db.ref("connectedUsers");
 
-// Revert buttons
-document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = defaultSettings.backgroundColor;
-document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
-document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
+  // 🔐 Login
+  const PASSWORD = "admin123";
+  document.getElementById("login-btn").onclick = () => {
+    if (document.getElementById("admin-pass").value === PASSWORD) {
+      document.getElementById("login-box").style.display = "none";
+      document.getElementById("admin-content").style.display = "block";
+      loadSettings();
+      watchUserCount();
+    } else {
+      alert("❌ Wrong password!");
+    }
+  };
 
-// Manual jumpscare
-document.getElementById("trigger-jumpscare").onclick = () => {
-  const image = document.getElementById("jumpscareImage").value;
-  if (!image) return alert("❌ Please enter a jumpscare image URL first!");
-  db.ref("jumpscareTriggerNow").set({ image, timestamp: Date.now() });
-  alert("😱 Jumpscare triggered!");
-};
+  const defaultSettings = {
+    backgroundColor: "#0a0a0a",
+    announcement: "",
+    jumpscareImage: ""
+  };
 
-// 💀 Troll Controls
-document.getElementById("cursor-chaos").onclick = () => {
-  trollRef.child("cursorChaos").set({ active: true, timestamp: Date.now() });
-};
-document.getElementById("creepy-sound").onclick = () => {
-  const soundUrl = prompt("Enter creepy sound URL (mp3):");
-  if (!soundUrl) return;
-  trollRef.child("creepySound").set({ url: soundUrl, timestamp: Date.now() });
-};
-document.getElementById("flashbang").onclick = () => {
-  trollRef.child("flashbang").set({ active: true, timestamp: Date.now() });
-};
-document.getElementById("reverse-controls").onclick = () => {
-  trollRef.child("reverseControls").set({ active: true, timestamp: Date.now() });
-};
+  function loadSettings() {
+    settingsRef.once("value").then(snapshot => {
+      const s = snapshot.val() || defaultSettings;
+      document.getElementById("bgColor").value = s.backgroundColor || defaultSettings.backgroundColor;
+      document.getElementById("announcement").value = s.announcement || defaultSettings.announcement;
+      document.getElementById("jumpscareImage").value = s.jumpscareImage || defaultSettings.jumpscareImage;
+    });
+  }
 
-// 👥 Live User Counter
-function watchUserCount() {
-  usersRef.on("value", snap => {
-    const count = snap.numChildren();
-    document.getElementById("user-count").textContent = count + " online";
-  });
-}
-const soundMenu = document.getElementById("sound-menu");
-const chooseSoundBtn = document.getElementById("choose-sound");
-
-// List your .mp3 files here
-const soundFiles = [
-  "clashintro.mp3",
-  "rainingtacos.mp3",
-  "brainrot.mp3"
-];
-
-// Show menu when button is clicked
-chooseSoundBtn.onclick = () => {
-  soundMenu.innerHTML = "";
-  soundFiles.forEach(file => {
-    const btn = document.createElement("button");
-    btn.textContent = "▶️ " + file;
-    btn.style.display = "block";
-    btn.style.margin = "5px 0";
-    btn.onclick = () => {
-      trollRef.child("creepySound").set({
-        url: file,
-        timestamp: Date.now()
-      });
-      alert(`🔊 ${file} triggered!`);
+  document.getElementById("save").onclick = () => {
+    const settings = {
+      backgroundColor: document.getElementById("bgColor").value,
+      announcement: document.getElementById("announcement").value,
+      jumpscareImage: document.getElementById("jumpscareImage").value
     };
-    soundMenu.appendChild(btn);
-  });
-  soundMenu.style.display = soundMenu.style.display === "none" ? "block" : "none";
-};
+    settingsRef.set(settings).then(() => alert("✅ Changes saved & live!"));
+  };
 
+  document.getElementById("trigger-announcement").onclick = () => {
+    const text = document.getElementById("announcement").value.trim();
+    if (!text) return alert("❌ No announcement text!");
+    db.ref("announcementTriggerNow").set({
+      text: text,
+      timestamp: Date.now()
+    });
+    alert("📢 Announcement triggered!");
+  };
+
+  document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = defaultSettings.backgroundColor;
+  document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
+  document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
+
+  document.getElementById("trigger-jumpscare").onclick = () => {
+    const image = document.getElementById("jumpscareImage").value;
+    if (!image) return alert("❌ Please enter a jumpscare image URL first!");
+    db.ref("jumpscareTriggerNow").set({ image, timestamp: Date.now() });
+    alert("😱 Jumpscare triggered!");
+  };
+
+  document.getElementById("cursor-chaos").onclick = () => {
+    trollRef.child("cursorChaos").set({ active: true, timestamp: Date.now() });
+  };
+
+  document.getElementById("flashbang").onclick = () => {
+    trollRef.child("flashbang").set({ active: true, timestamp: Date.now() });
+  };
+
+  document.getElementById("reverse-controls").onclick = () => {
+    trollRef.child("reverseControls").set({ active: true, timestamp: Date.now() });
+  };
+
+  function watchUserCount() {
+    usersRef.on("value", snap => {
+      const count = snap.numChildren();
+      document.getElementById("user-count").textContent = count + " online";
+    });
+  }
+
+  const soundMenu = document.getElementById("sound-menu");
+  const chooseSoundBtn = document.getElementById("choose-sound");
+
+  const soundFiles = [
+    "clashintro.mp3",
+    "rainingtacos.mp3",
+    "brainrot.mp3"
+  ];
+
+  chooseSoundBtn.onclick = () => {
+    soundMenu.innerHTML = "";
+    soundFiles.forEach(file => {
+      const btn = document.createElement("button");
+      btn.textContent = "▶️ " + file;
+      btn.style.display = "block";
+      btn.style.margin = "5px 0";
+      btn.onclick = () => {
+        trollRef.child("creepySound").set({
+          url: file,
+          timestamp: Date.now()
+        });
+        alert(`🔊 ${file} triggered!`);
+      };
+      soundMenu.appendChild(btn);
+    });
+    soundMenu.style.display = soundMenu.style.display === "none" ? "block" : "none";
+  };
 </script>
 </body>
 </html>
