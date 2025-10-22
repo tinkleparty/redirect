@@ -67,7 +67,7 @@
 </head>
 <body>
 
-@@ -108,10 +109,12 @@ <h2>💀 Troll Controls</h2>
+<h2>💀 Troll Controls</h2>
   <div class="group">
     <button id="cursor-chaos">🌀 Cursor Chaos</button>
   </div>
@@ -80,7 +80,7 @@
   <div class="group">
     <button id="flashbang">💥 Flashbang Mode</button>
     <button id="reverse-controls">🔄 Reverse Controls</button>
-@@ -131,141 +134,128 @@ <h2>💀 Troll Controls</h2>
+<h2>💀 Troll Controls</h2>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
 <script>
@@ -149,20 +149,9 @@
     });
     alert("📢 Announcement triggered!");
   };
-
-
-
   document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = defaultSettings.backgroundColor;
   document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
   document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
-
-
-
-
-
-
-
-
   document.getElementById("trigger-jumpscare").onclick = () => {
     const image = document.getElementById("jumpscareImage").value;
     if (!image) return alert("❌ Please enter a jumpscare image URL first!");
@@ -174,35 +163,13 @@
     trollRef.child("cursorChaos").set({ active: true, timestamp: Date.now() });
   };
 
-
-
-
-
   document.getElementById("flashbang").onclick = () => {
     trollRef.child("flashbang").set({ active: true, timestamp: Date.now() });
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
   document.getElementById("reverse-controls").onclick = () => {
     trollRef.child("reverseControls").set({ active: true, timestamp: Date.now() });
   };
-
-
-
-
-
-
 
   function watchUserCount() {
     usersRef.on("value", snap => {
@@ -213,24 +180,6 @@
 
   const soundMenu = document.getElementById("sound-menu");
   const chooseSoundBtn = document.getElementById("choose-sound");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   const soundFiles = [
     "clashintro.mp3",
     "rainingtacos.mp3",
