@@ -1058,31 +1058,28 @@ style.textContent = `
 document.head.appendChild(style);
 
 function startCrabRave() {
-  const crabURL = "https://media.tenor.com/images/d9e9f7761df4b79b04efb9ff17e63e4b/tenor.gif"; // your crab GIF
+  const crabURL = "https://media3.giphy.com/media/v1.Y2lkPTZjMDliOTUyYXJjYTZ2YWxsdTU4bjZleW0yczdxYmhjcmVjMnJob2cwOHlpNTlieiZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/NitS36ljNxQcfT0QIT/200.gif"; // your crab GIF
   const raveContainer = document.createElement("div");
   raveContainer.id = "crab-rave";
   Object.assign(raveContainer.style, {
     position: "fixed",
     top: "0",
     left: "0",
-    width: "100%",
-    height: "100%",
+    width: "100vw",
+    height: "100vh",
     overflow: "hidden",
     zIndex: "99998",
     background: "#000",
     pointerEvents: "none",
     perspective: "1000px",
-    display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "center",
   });
   document.body.appendChild(raveContainer);
 
-  // === Create crab "crowd" ===
-  const rows = 4; // how many depth rows (front to back)
-  const cols = 8; // how many crabs per row
-  const crabSpacingX = 100 / (cols + 1);
-  const crabSpacingY = 100 / (rows + 1);
+  // === Create crab "crowd" layout ===
+  const rows = 4; // front-to-back
+  const cols = 8; // crabs per row
+  const crabSpacingX = window.innerWidth / (cols + 1);
+  const crabSpacingY = window.innerHeight / (rows + 1);
 
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -1092,19 +1089,19 @@ function startCrabRave() {
       crab.style.willChange = "transform";
       crab.style.transition = "transform 0.2s ease";
 
-      // Position evenly
-      const x = (c + 1) * crabSpacingX + (Math.random() * 4 - 2);
-      const y = (r + 1) * crabSpacingY + (Math.random() * 3 - 1.5);
+      // Constrain position fully within screen
+      const x = (c + 1) * crabSpacingX + (Math.random() * crabSpacingX * 0.3 - crabSpacingX * 0.15);
+      const y = (r + 1) * crabSpacingY + (Math.random() * crabSpacingY * 0.3 - crabSpacingY * 0.15);
 
-      // Depth scaling (further back → smaller)
+      // Depth scaling: further back = smaller
       const depth = (r + 1) / rows;
-      const scale = 0.6 + depth * 1.1;
+      const scale = 0.5 + depth * 1.0; // smaller back crabs
       const zIndex = Math.floor(depth * 100);
       const brightness = 0.6 + depth * 0.4;
 
       Object.assign(crab.style, {
-        left: `${x}%`,
-        top: `${y}%`,
+        left: `${x}px`,
+        top: `${y}px`,
         transform: `translate(-50%, 0) scale(${scale})`,
         filter: `brightness(${brightness})`,
         zIndex,
@@ -1114,7 +1111,7 @@ function startCrabRave() {
     }
   }
 
-  // === Beat sync (Crab Rave tempo ~125 BPM)
+  // === Beat sync (screen bounce + background pulse) ===
   const colors = ["#00bfff", "#ff69b4", "#32cd32", "#9370db", "#ffb6c1", "#00ffff"];
   let beatUp = false;
   let colorIndex = 0;
@@ -1132,19 +1129,19 @@ function startCrabRave() {
     raveContainer.style.backgroundColor = beatUp ? color : "#000";
     raveContainer.style.transition = "background-color 0.25s ease";
 
-    // Make crabs dance slightly with the beat
+    // Crab small bounce per beat
     document.querySelectorAll("#crab-rave img").forEach((crab) => {
-      const bounce = beatUp ? "translateY(-10px)" : "translateY(0)";
+      const bounce = beatUp ? "translateY(-8px)" : "translateY(0)";
       crab.style.transform = crab.style.transform.replace(/translateY\(.*?\)/, "") + ` ${bounce}`;
     });
   }, 480);
 
-  // === End effect after ~16s
+  // === End effect after ~17s
   setTimeout(() => {
     clearInterval(beatInterval);
     document.body.style.transform = "scale(1) translateY(0)";
     raveContainer.remove();
-  }, 16000);
+  }, 17000);
 }
 
   // === Flashbang
