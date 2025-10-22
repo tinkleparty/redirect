@@ -1059,7 +1059,7 @@ document.head.appendChild(style);
 
 // === Crab Rave ===
 function startCrabRave() {
-  const crabURL = "https://media.tenor.com/images/d9e9f7761df4b79b04efb9ff17e63e4b/tenor.gif"; // 🦀 replace with your dancing crab GIF
+  const crabURL = "https://media3.giphy.com/media/v1.Y2lkPTZjMDliOTUyYXJjYTZ2YWxsdTU4bjZleW0yczdxYmhjcmVjMnJob2cwOHlpNTlieiZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/NitS36ljNxQcfT0QIT/200.gif"; // 🦀 replace with your dancing crab GIF
   const raveContainer = document.createElement("div");
   raveContainer.id = "crab-rave";
   raveContainer.style.position = "fixed";
@@ -1090,12 +1090,12 @@ function startCrabRave() {
     createCrab(raveContainer, crabURL);
   }
 
-  // === Stop after ~25s (approx song length)
+  // === Stop after ~15s (approx song length)
   setTimeout(() => {
     raveActive = false;
     clearInterval(raveInterval);
     raveContainer.remove();
-  }, 25000);
+  }, 15000);
 }
 
 function createCrab(container, crabURL) {
