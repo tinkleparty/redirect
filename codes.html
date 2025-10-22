@@ -1057,81 +1057,92 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// === Crab Rave ===
 function startCrabRave() {
-  const crabURL = "https://media3.giphy.com/media/v1.Y2lkPTZjMDliOTUyYXJjYTZ2YWxsdTU4bjZleW0yczdxYmhjcmVjMnJob2cwOHlpNTlieiZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/NitS36ljNxQcfT0QIT/200.gif"; // 🦀 replace with your dancing crab GIF
+  const crabURL = "https://media3.giphy.com/media/v1.Y2lkPTZjMDliOTUyYXJjYTZ2YWxsdTU4bjZleW0yczdxYmhjcmVjMnJob2cwOHlpNTlieiZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/NitS36ljNxQcfT0QIT/200.gif"; // your crab GIF
   const raveContainer = document.createElement("div");
   raveContainer.id = "crab-rave";
-  raveContainer.style.position = "fixed";
-  raveContainer.style.top = "0";
-  raveContainer.style.left = "0";
-  raveContainer.style.width = "100%";
-  raveContainer.style.height = "100%";
-  raveContainer.style.overflow = "hidden";
-  raveContainer.style.zIndex = "99998";
-  raveContainer.style.background = "#000";
-  raveContainer.style.pointerEvents = "none";
-  raveContainer.style.transition = "background-color 0.5s ease";
+  Object.assign(raveContainer.style, {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    width: "100%",
+    height: "100%",
+    overflow: "hidden",
+    zIndex: "99998",
+    background: "#000",
+    pointerEvents: "none",
+    transition: "background-color 0.4s ease",
+    perspective: "1000px", // gives 3D feel
+  });
   document.body.appendChild(raveContainer);
 
-  // === Create flashing background ===
-  let raveActive = true;
-  const colors = ["#1e90ff", "#ff69b4", "#32cd32", "#00ffff", "#ffb6c1", "#9370db"];
-  let colorIndex = 0;
-
-  const raveInterval = setInterval(() => {
-    raveContainer.style.backgroundColor = colors[colorIndex % colors.length];
-    colorIndex++;
-  }, 500); // changes every half second
-
-  // === Create crabs ===
-  const crabCount = 20;
+  // === Create crabs in perspective "crowd" layout ===
+  const crabCount = 30;
   for (let i = 0; i < crabCount; i++) {
-    createCrab(raveContainer, crabURL);
+    const crab = document.createElement("img");
+    crab.src = crabURL;
+    crab.style.position = "absolute";
+    crab.style.willChange = "transform";
+    crab.style.transition = "transform 0.2s ease";
+
+    // Random position across screen
+    const x = Math.random() * 100; // % across width
+    const y = Math.random() * 100; // % down height
+
+    // Simulate depth: closer to bottom = larger + brighter
+    const depth = y / 100; // 0 (top) → 1 (bottom)
+    const scale = 0.3 + depth * 1.2; // size scaling
+    const zIndex = Math.floor(depth * 100); // order by depth
+    const brightness = 0.5 + depth * 0.5; // brighter at front
+
+    Object.assign(crab.style, {
+      left: `${x}%`,
+      top: `${y}%`,
+      transform: `translate(-50%, -50%) scale(${scale})`,
+      filter: `brightness(${brightness})`,
+      zIndex,
+    });
+
+    raveContainer.appendChild(crab);
   }
 
-  // === Stop after ~15s (approx song length)
+  // === Color flash cycle ===
+  const colors = ["#1e90ff", "#ff69b4", "#32cd32", "#00ffff", "#ffb6c1", "#9370db"];
+  let colorIndex = 0;
+  const flashInterval = setInterval(() => {
+    raveContainer.style.backgroundColor = colors[colorIndex % colors.length];
+    colorIndex++;
+  }, 800);
+
+  // === Beat bounce (simulated at ~125 BPM) ===
+  let beatUp = false;
+  const beatInterval = setInterval(() => {
+    beatUp = !beatUp;
+    document.body.style.transform = beatUp
+      ? "scale(1.02) translateY(-5px)"
+      : "scale(1) translateY(0)";
+    document.body.style.transition = "transform 0.2s ease";
+
+    // Optional: make crabs "dance" slightly on each beat
+    document.querySelectorAll("#crab-rave img").forEach((crab) => {
+      const jitterX = (Math.random() - 0.5) * 10;
+      const jitterY = (Math.random() - 0.5) * 10;
+      crab.style.transform += ` translate(${jitterX}px, ${jitterY}px)`;
+      setTimeout(() => {
+        crab.style.transform = crab.style.transform.replace(/ translate\(.*?\)/, "");
+      }, 200);
+    });
+  }, 480);
+
+  // === End effect after ~25s
   setTimeout(() => {
-    raveActive = false;
-    clearInterval(raveInterval);
+    clearInterval(flashInterval);
+    clearInterval(beatInterval);
+    document.body.style.transform = "scale(1) translateY(0)";
     raveContainer.remove();
   }, 15000);
 }
 
-function createCrab(container, crabURL) {
-  const crab = document.createElement("img");
-  crab.src = crabURL;
-  crab.style.position = "absolute";
-
-  // Randomize horizontal position (0–100vw)
-  const x = Math.random() * 100;
-  crab.style.left = x + "vw";
-
-  // Vertical placement (dance floor band)
-  crab.style.top = 60 + Math.random() * 30 + "vh";
-
-  // Scale: larger near edges, smaller in middle (gives depth illusion)
-  const distanceFromCenter = Math.abs(x - 50) / 50; // 0 in center, 1 at edges
-  const scale = 1.5 - distanceFromCenter; // 1.5x big near edges, 0.5x small center
-  crab.style.transform = `scale(${scale})`;
-  crab.style.opacity = "0.9";
-
-  // Animation: bounce and wiggle
-  crab.style.animation = `crabDance ${0.8 + Math.random() * 0.5}s ease-in-out infinite alternate`;
-
-  container.appendChild(crab);
-}
-
-// === Crab Dance Animations ===
-const crabStyle = document.createElement("style");
-crabStyle.textContent = `
-@keyframes crabDance {
-  0% { transform: translateY(0) rotate(-5deg) scale(1); filter: brightness(1); }
-  50% { transform: translateY(-15px) rotate(5deg) scale(1.05); filter: brightness(1.2); }
-  100% { transform: translateY(0) rotate(-5deg) scale(1); filter: brightness(1); }
-}
-`;
-document.head.appendChild(crabStyle);
   
   // === Flashbang
   trollRef.child("flashbang").on("value", (snap) => {
