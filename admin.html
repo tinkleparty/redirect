@@ -112,6 +112,7 @@
 
   <div class="group" style="flex-direction: column; align-items: flex-start;">
     <button id="choose-sound">🎵 Play Sound</button>
+    <button id="stop-sound">⏹️ Stop Audio</button>
     <div id="sound-menu" style="display:none; background:#222; padding:10px; border-radius:8px; margin-top:10px; max-height:200px; overflow:auto;"></div>
   </div>
 
@@ -233,13 +234,14 @@
     });
   }
   const soundMenu = document.getElementById("sound-menu");
+  const stopSoundBtn = document.getElementById("stop-sound");
   const chooseSoundBtn = document.getElementById("choose-sound");
+  let currentAudio = null;
   const soundFiles = [
     "clashintro.mp3",
     "rainingtacos.mp3",
     "brainrot.mp3"
   ];
-
   chooseSoundBtn.onclick = () => {
     soundMenu.innerHTML = "";
     soundFiles.forEach(file => {
@@ -258,7 +260,18 @@
     });
     soundMenu.style.display = soundMenu.style.display === "none" ? "block" : "none";
   };
-
+  stopSoundBtn.onclick = () => {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      currentAudio = null;
+      alert("⏹️ Audio stopped.");
+      // Clear trigger so clients know it stopped
+      trollRef.child("creepySound").set(null);
+    } else {
+      alert("🔇 No audio is currently playing.");
+    }
+  };
 </script>
 </body>
 </html>
