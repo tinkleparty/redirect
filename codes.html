@@ -971,13 +971,85 @@ showCategory("all");
   });
 
   trollRef.child("creepySound").on("value", snap => {
-  const data = snap.val();
-  if (data && data.url && Date.now() - data.timestamp < 10000) {
-    const audio = new Audio(data.url); // relative to codes.html
+    const data = snap.val();
+    if (!data || !data.url || Date.now() - data.timestamp > 10000) return;
+    const audio = new Audio(data.url);
     audio.play().catch(console.error);
-  }
+    // 🌮 If rainingtacos.mp3 plays, start taco rain
+    if (data.url.includes("rainingtacos.mp3")) {
+      startTacoRain();
+    }
   });
 
+  // === Taco Rain Animation ===
+function startTacoRain() {
+  const tacoURL = "https://upload.wikimedia.org/wikipedia/commons/3/3a/Taco_icon.png"; // <== your taco image URL
+  const rainContainer = document.createElement("div");
+  rainContainer.id = "taco-rain";
+  rainContainer.style.position = "fixed";
+  rainContainer.style.top = "0";
+  rainContainer.style.left = "0";
+  rainContainer.style.width = "100%";
+  rainContainer.style.height = "100%";
+  rainContainer.style.pointerEvents = "none";
+  rainContainer.style.overflow = "hidden";
+  rainContainer.style.zIndex = "99999";
+  document.body.appendChild(rainContainer);
+
+  // Generate tacos + spice particles
+  const tacoCount = 20;
+  const spiceCount = 40;
+  for (let i = 0; i < tacoCount; i++) createTaco(rainContainer, tacoURL);
+  for (let i = 0; i < spiceCount; i++) createSpice(rainContainer);
+
+  // Remove after song ends (~30s)
+  setTimeout(() => rainContainer.remove(), 30000);
+}
+
+function createTaco(container, tacoURL) {
+  const taco = document.createElement("img");
+  taco.src = tacoURL;
+  taco.style.position = "absolute";
+  taco.style.top = "-100px";
+  taco.style.left = Math.random() * 100 + "vw";
+  taco.style.width = 50 + Math.random() * 50 + "px";
+  taco.style.opacity = 0.9;
+  taco.style.transform = `rotate(${Math.random() * 360}deg)`;
+  taco.style.animation = `tacoFall ${4 + Math.random() * 5}s linear infinite`;
+  taco.style.animationDelay = Math.random() * 5 + "s";
+  container.appendChild(taco);
+}
+
+function createSpice(container) {
+  const spice = document.createElement("div");
+  spice.style.position = "absolute";
+  spice.style.top = "-10px";
+  spice.style.left = Math.random() * 100 + "vw";
+  spice.style.width = "8px";
+  spice.style.height = "8px";
+  spice.style.borderRadius = "50%";
+  spice.style.background = Math.random() > 0.5 ? "#d17f3f" : "#f5c26b"; // taco spice colors
+  spice.style.opacity = 0.8;
+  spice.style.animation = `spiceFall ${3 + Math.random() * 3}s linear infinite`;
+  spice.style.animationDelay = Math.random() * 5 + "s";
+  container.appendChild(spice);
+}
+
+// === CSS Animations ===
+const style = document.createElement("style");
+style.textContent = `
+@keyframes tacoFall {
+  0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes spiceFall {
+  0% { transform: translateY(-10px); opacity: 1; }
+  100% { transform: translateY(110vh); opacity: 0; }
+}
+`;
+document.head.appendChild(style);
+  
   // === Flashbang
   trollRef.child("flashbang").on("value", (snap) => {
     const data = snap.val();
