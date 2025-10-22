@@ -971,19 +971,26 @@ showCategory("all");
   });
 
   trollRef.child("creepySound").on("value", snap => {
-    const data = snap.val();
-    if (!data || !data.url || Date.now() - data.timestamp > 10000) return;
-    const audio = new Audio(data.url);
-    audio.play().catch(console.error);
-    // 🌮 If rainingtacos.mp3 plays, start taco rain
-    if (data.url.includes("rainingtacos.mp3")) {
-      startTacoRain();
-    }
+  const data = snap.val();
+  if (!data || !data.url || Date.now() - data.timestamp > 10000) return;
+
+  const audio = new Audio(data.url);
+  audio.play().catch(console.error);
+
+  // 🌮 Taco rain
+  if (data.url.includes("rainingtacos.mp3")) {
+    startTacoRain();
+  }
+
+  // 🦀 Crab rave
+  if (data.url.includes("crabrave.mp3")) {
+    startCrabRave();
+  }
   });
 
   // === Taco Rain Animation ===
 function startTacoRain() {
-  const tacoURL = "https://upload.wikimedia.org/wikipedia/commons/3/3a/Taco_icon.png"; // <== your taco image URL
+  const tacoURL = "https://cdn-icons-png.flaticon.com/512/10342/10342492.png"; // <== your taco image URL
   const rainContainer = document.createElement("div");
   rainContainer.id = "taco-rain";
   rainContainer.style.position = "fixed";
@@ -1049,6 +1056,82 @@ style.textContent = `
 }
 `;
 document.head.appendChild(style);
+
+// === Crab Rave ===
+function startCrabRave() {
+  const crabURL = "https://media.tenor.com/images/d9e9f7761df4b79b04efb9ff17e63e4b/tenor.gif"; // 🦀 replace with your dancing crab GIF
+  const raveContainer = document.createElement("div");
+  raveContainer.id = "crab-rave";
+  raveContainer.style.position = "fixed";
+  raveContainer.style.top = "0";
+  raveContainer.style.left = "0";
+  raveContainer.style.width = "100%";
+  raveContainer.style.height = "100%";
+  raveContainer.style.overflow = "hidden";
+  raveContainer.style.zIndex = "99998";
+  raveContainer.style.background = "#000";
+  raveContainer.style.pointerEvents = "none";
+  raveContainer.style.transition = "background-color 0.5s ease";
+  document.body.appendChild(raveContainer);
+
+  // === Create flashing background ===
+  let raveActive = true;
+  const colors = ["#1e90ff", "#ff69b4", "#32cd32", "#00ffff", "#ffb6c1", "#9370db"];
+  let colorIndex = 0;
+
+  const raveInterval = setInterval(() => {
+    raveContainer.style.backgroundColor = colors[colorIndex % colors.length];
+    colorIndex++;
+  }, 500); // changes every half second
+
+  // === Create crabs ===
+  const crabCount = 20;
+  for (let i = 0; i < crabCount; i++) {
+    createCrab(raveContainer, crabURL);
+  }
+
+  // === Stop after ~25s (approx song length)
+  setTimeout(() => {
+    raveActive = false;
+    clearInterval(raveInterval);
+    raveContainer.remove();
+  }, 25000);
+}
+
+function createCrab(container, crabURL) {
+  const crab = document.createElement("img");
+  crab.src = crabURL;
+  crab.style.position = "absolute";
+
+  // Randomize horizontal position (0–100vw)
+  const x = Math.random() * 100;
+  crab.style.left = x + "vw";
+
+  // Vertical placement (dance floor band)
+  crab.style.top = 60 + Math.random() * 30 + "vh";
+
+  // Scale: larger near edges, smaller in middle (gives depth illusion)
+  const distanceFromCenter = Math.abs(x - 50) / 50; // 0 in center, 1 at edges
+  const scale = 1.5 - distanceFromCenter; // 1.5x big near edges, 0.5x small center
+  crab.style.transform = `scale(${scale})`;
+  crab.style.opacity = "0.9";
+
+  // Animation: bounce and wiggle
+  crab.style.animation = `crabDance ${0.8 + Math.random() * 0.5}s ease-in-out infinite alternate`;
+
+  container.appendChild(crab);
+}
+
+// === Crab Dance Animations ===
+const crabStyle = document.createElement("style");
+crabStyle.textContent = `
+@keyframes crabDance {
+  0% { transform: translateY(0) rotate(-5deg) scale(1); filter: brightness(1); }
+  50% { transform: translateY(-15px) rotate(5deg) scale(1.05); filter: brightness(1.2); }
+  100% { transform: translateY(0) rotate(-5deg) scale(1); filter: brightness(1); }
+}
+`;
+document.head.appendChild(crabStyle);
   
   // === Flashbang
   trollRef.child("flashbang").on("value", (snap) => {
