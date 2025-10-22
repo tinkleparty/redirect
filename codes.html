@@ -1098,11 +1098,8 @@ function startCrabRave() {
     crab.style.transition = "transform 0.2s ease";
     crab.style.willChange = "transform";
 
-    // Random position across the page
-    const x = Math.random() * 95 + 2.5; // avoid edges
+    const x = Math.random() * 95 + 2.5;
     const y = Math.random() * pageHeight;
-
-    // Random scale small-to-medium
     const scale = 0.3 + Math.random() * 0.4;
 
     Object.assign(crab.style, {
@@ -1115,7 +1112,7 @@ function startCrabRave() {
     raveContainer.appendChild(crab);
   }
 
-  // === Beat sync: spotlight moves + crab bounce ===
+  // === Beat sync: spotlight + crab bounce + page bounce ===
   const colors = ["#ff00ff", "#00ffff", "#ffcc00", "#ff69b4", "#00ff00"];
   let beatUp = false;
   let colorIndex = 0;
@@ -1128,7 +1125,6 @@ function startCrabRave() {
     const spotlightY = Math.random() * 100;
     const color = colors[colorIndex % colors.length];
     colorIndex++;
-
     spotlight.style.background = `radial-gradient(circle at ${spotlightX}% ${spotlightY}%, ${color}40 0%, transparent 70%)`;
 
     // Crab bounce per beat
@@ -1136,11 +1132,17 @@ function startCrabRave() {
       const bounce = `translateY(${beatUp ? -6 : 0}px)`;
       crab.style.transform = crab.style.transform.replace(/translateY\(.*?\)/, "") + ` ${bounce}`;
     });
+
+    // Page bounce per beat
+    const pageBounce = beatUp ? -10 : 0; // pixels to move up
+    document.body.style.transform = `translateY(${pageBounce}px)`;
+    document.body.style.transition = "transform 0.15s ease";
   }, 480); // ~125 BPM
 
   // === End effect after ~17s ===
   setTimeout(() => {
     clearInterval(beatInterval);
+    document.body.style.transform = "translateY(0)";
     raveContainer.remove();
     spotlight.remove();
   }, 17000);
