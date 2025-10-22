@@ -190,7 +190,7 @@ document.getElementById("save").onclick = () => {
 document.getElementById("trigger-announcement").onclick = () => {
   const text = document.getElementById("announcement").value.trim();
   if (!text) return alert("❌ No announcement text!");
-  db.ref("announcementTrigger").set({
+  db.ref("announcementTriggerNow").set({
     text: text,
     timestamp: Date.now()
   });
