@@ -853,6 +853,13 @@ showCategory("all");
   let lastFlashbang = 0;
   let lastReverseControls = 0;
 
+  let initialAnnounceLoaded = false;
+  let initialJumpLoaded = false;
+  let initialCursorLoaded = false;
+  let initialSoundLoaded = false;
+  let initialFlashbangLoaded = false;
+  let initialReverseLoaded = false;
+
   // === Listen for site settings ===
   settingsRef.on("value", (snapshot) => {
     const s = snapshot.val();
@@ -905,6 +912,13 @@ showCategory("all");
   triggerAnnRef.on("value", (snapshot) => {
     const t = snapshot.val();
     if (!t || typeof t.timestamp !== "number") return;
+
+    if (!initialAnnounceLoaded) {
+      lastAnnounceTriggerTime = t.timestamp;
+      initialAnnounceLoaded = true;
+      return;
+    }
+
     if (t.timestamp === lastAnnounceTriggerTime) return;
     lastAnnounceTriggerTime = t.timestamp;
 
@@ -920,12 +934,22 @@ showCategory("all");
       banner.style.opacity = "0";
       setTimeout(() => banner.style.display = "none", 1000);
     }, 5000);
+
+    // Optional: clear after use
+    triggerAnnRef.set(null);
   });
 
   // === Manual Jumpscare Trigger ===
   triggerRef.on("value", (snapshot) => {
     const t = snapshot.val();
     if (!t || typeof t.timestamp !== "number") return;
+
+    if (!initialJumpLoaded) {
+      lastJumpscareTimestamp = t.timestamp;
+      initialJumpLoaded = true;
+      return;
+    }
+
     if (t.timestamp === lastJumpscareTimestamp) return;
     lastJumpscareTimestamp = t.timestamp;
 
@@ -941,14 +965,22 @@ showCategory("all");
     document.body.appendChild(img);
 
     setTimeout(() => img.remove(), 1500);
+
+    // Optional: clear after use
+    triggerRef.set(null);
   });
 
-  // === Troll Features ===
-
-  // 🌀 Cursor Chaos
+  // === Cursor Chaos
   trollRef.child("cursorChaos").on("value", (snap) => {
     const data = snap.val();
     if (!data || typeof data.timestamp !== "number") return;
+
+    if (!initialCursorLoaded) {
+      lastCursorChaos = data.timestamp;
+      initialCursorLoaded = true;
+      return;
+    }
+
     if (data.timestamp === lastCursorChaos) return;
     lastCursorChaos = data.timestamp;
 
@@ -958,10 +990,17 @@ showCategory("all");
     }, 3000);
   });
 
-  // 🔊 Creepy Sound
+  // === Creepy Sound
   trollRef.child("creepySound").on("value", (snap) => {
     const data = snap.val();
     if (!data || typeof data.timestamp !== "number") return;
+
+    if (!initialSoundLoaded) {
+      lastCreepySound = data.timestamp;
+      initialSoundLoaded = true;
+      return;
+    }
+
     if (data.timestamp === lastCreepySound) return;
     lastCreepySound = data.timestamp;
 
@@ -971,10 +1010,17 @@ showCategory("all");
     }
   });
 
-  // 💥 Flashbang
+  // === Flashbang
   trollRef.child("flashbang").on("value", (snap) => {
     const data = snap.val();
     if (!data || typeof data.timestamp !== "number") return;
+
+    if (!initialFlashbangLoaded) {
+      lastFlashbang = data.timestamp;
+      initialFlashbangLoaded = true;
+      return;
+    }
+
     if (data.timestamp === lastFlashbang) return;
     lastFlashbang = data.timestamp;
 
@@ -994,10 +1040,17 @@ showCategory("all");
     setTimeout(() => flash.remove(), 800);
   });
 
-  // 🔄 Reverse Controls
+  // === Reverse Controls
   trollRef.child("reverseControls").on("value", (snap) => {
     const data = snap.val();
     if (!data || typeof data.timestamp !== "number") return;
+
+    if (!initialReverseLoaded) {
+      lastReverseControls = data.timestamp;
+      initialReverseLoaded = true;
+      return;
+    }
+
     if (data.timestamp === lastReverseControls) return;
     lastReverseControls = data.timestamp;
 
@@ -1019,5 +1072,6 @@ showCategory("all");
   myRef.onDisconnect().remove();
   myRef.set(true);
 </script>
+
 </body>
 </html>
