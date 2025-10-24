@@ -135,35 +135,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
 <script>
-  const adminRef = db.ref("admin/hashedPassword");
-
-  document.getElementById("login-btn").onclick = () => {
-    const entered = document.getElementById("admin-pass").value;
-
-    adminRef.once("value").then(snap => {
-      const hash = snap.val();
-
-      if (!hash) return alert("⚠️ No admin password set in database!");
-
-      // Synchronous comparison
-      const match = bcrypt.compareSync(entered, hash);
-
-      if (match) {
-        alert("✅ Login successful!");
-        document.getElementById("login-box").style.display = "none";
-        document.getElementById("admin-content").style.display = "block";
-        loadSettings();
-        watchUserCount();
-      } else {
-        alert("❌ Incorrect password!");
-      }
-    }).catch(err => {
-      console.error(err);
-      alert("❌ Error reading admin password from database");
-    });
-  };
-</script>
-<script>
   // 🔥 Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
@@ -291,7 +262,6 @@
     }
   };
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
 <script>
   const adminRef = db.ref("admin/hashedPassword");
 
