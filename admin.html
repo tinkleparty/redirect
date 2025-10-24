@@ -155,22 +155,6 @@
   const trollRef = db.ref("trollTriggers");
   const usersRef = db.ref("connectedUsers");
 
-
-  // 🔐 Login
-  const PASSWORD = "admin123";
-  document.getElementById("login-btn").onclick = () => {
-    if (document.getElementById("admin-pass").value === PASSWORD) {
-      document.getElementById("login-box").style.display = "none";
-      document.getElementById("admin-content").style.display = "block";
-      loadSettings();
-      watchUserCount();
-
-    } else {
-      alert("❌ Wrong password!");
-    }
-  };
-
-
   const defaultSettings = {
     backgroundColor: "#0a0a0a",
     announcement: "",
@@ -276,6 +260,30 @@
       trollRef.child("creepySound").set(null);
     } else {
       alert("🔇 No audio is currently playing.");
+    }
+  };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+
+<script>
+  const adminRef = db.ref("admin/hashedPassword");
+
+  document.getElementById("login-btn").onclick = async () => {
+    const entered = document.getElementById("admin-pass").value;
+    const snap = await adminRef.once("value");
+    const hash = snap.val();
+
+    if (!hash) return alert("⚠️ No admin password set in database!");
+
+    const match = await bcrypt.compare(entered, hash);
+    if (match) {
+      alert("✅ Login successful!");
+      document.getElementById("login-box").style.display = "none";
+      document.getElementById("admin-content").style.display = "block";
+      loadSettings();
+      watchUserCount();
+    } else {
+      alert("❌ Incorrect password!");
     }
   };
 </script>
