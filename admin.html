@@ -1,69 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Panel</title>
-  <style>
-    body {
-      background-color: #111;
-      color: white;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 { color: #4CAF50; }
-    input, textarea {
-      width: 100%;
-      padding: 8px;
-      margin: 10px 0;
-      border-radius: 6px;
-      border: none;
-      outline: none;
-      font-size: 14px;
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    button:hover { background-color: #45a049; }
-    .revert {
-      background-color: #d9534f;
-      margin-left: 10px;
-    }
-    .revert:hover {
-      background-color: #c9302c;
-    }
-    #login-box {
-      text-align: center;
-      margin-top: 100px;
-    }
-    #admin-content {
-      display: none;
-      max-width: 600px;
-      margin: auto;
-    }
-    label {
-      display: block;
-      margin-top: 20px;
-      font-weight: bold;
-    }
-    .group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    input[type="color"] {
-      width: 60px;
-      height: 35px;
-      padding: 0;
-      border-radius: 4px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Admin Panel</title>
+<style>
+  body { background-color: #111; color: white; font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+  h1 { color: #4CAF50; }
+  input, textarea { width: 100%; padding: 8px; margin: 10px 0; border-radius: 6px; border: none; outline: none; font-size: 14px; }
+  button { background-color: #4CAF50; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+  button:hover { background-color: #45a049; }
+  .revert { background-color: #d9534f; margin-left: 10px; }
+  .revert:hover { background-color: #c9302c; }
+  #login-box { text-align: center; margin-top: 100px; }
+  #admin-content { display: none; max-width: 600px; margin: auto; }
+  label { display: block; margin-top: 20px; font-weight: bold; }
+  .group { display: flex; align-items: center; gap: 10px; }
+  input[type="color"] { width: 60px; height: 35px; padding: 0; border-radius: 4px; }
+</style>
 </head>
 <body>
 
@@ -139,199 +92,172 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
 <script>
-  // 🔥 Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
-    authDomain: "mostpopular-39c60.firebaseapp.com",
-    databaseURL: "https://mostpopular-39c60-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "mostpopular-39c60",
-    storageBucket: "mostpopular-39c60.appspot.com",
-    messagingSenderId: "939775132675",
-    appId: "1:939775132675:web:7d40bd8fff497c53553a36",
-    measurementId: "G-XTTQ03YFN9"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
+  authDomain: "mostpopular-39c60.firebaseapp.com",
+  databaseURL: "https://mostpopular-39c60-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "mostpopular-39c60",
+  storageBucket: "mostpopular-39c60.appspot.com",
+  messagingSenderId: "939775132675",
+  appId: "1:939775132675:web:7d40bd8fff497c53553a36",
+  measurementId: "G-XTTQ03YFN9"
+};
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-  const settingsRef = db.ref("siteSettings");
-  const trollRef = db.ref("trollTriggers");
-  const usersRef = db.ref("connectedUsers");
-  const adminRef = db.ref("admin/hashedPassword");
-  const tokenRefRoot = db.ref("admin/loginTokens");
+const settingsRef = db.ref("siteSettings");
+const trollRef = db.ref("trollTriggers");
+const usersRef = db.ref("connectedUsers");
+const adminRef = db.ref("admin/hashedPassword");
+const tokenRefRoot = db.ref("admin/loginTokens");
 
-  const defaultSettings = {
-    backgroundColor: "#0a0a0a",
-    announcement: "",
-    jumpscareImage: ""
-  };
+const defaultSettings = {
+  backgroundColor: "#0a0a0a",
+  announcement: "",
+  jumpscareImage: ""
+};
 
-  let authToken = null; // 🔑 Token for authenticated actions
+let authToken = null;
 
-  // ---------------- LOAD SETTINGS ----------------
-  function loadSettings() {
-    settingsRef.once("value").then(snapshot => {
-      const s = snapshot.val() || defaultSettings;
-      document.getElementById("bgColor").value = s.backgroundColor || defaultSettings.backgroundColor;
-      document.getElementById("announcement").value = s.announcement || defaultSettings.announcement;
-      document.getElementById("jumpscareImage").value = s.jumpscareImage || defaultSettings.jumpscareImage;
-    });
-  }
+// ---------------- LOGIN ----------------
+window.onload = () => {
+  const loginBtn = document.getElementById("login-btn");
+  const adminPassInput = document.getElementById("admin-pass");
+  const loginBox = document.getElementById("login-box");
+  const adminContent = document.getElementById("admin-content");
 
-  // ---------------- WATCH USERS ----------------
-  function watchUserCount() {
-    usersRef.on("value", snap => {
-      const count = snap.numChildren();
-      document.getElementById("user-count").textContent = count + " online";
-    });
-  }
+  loginBtn.onclick = async () => {
+    const entered = adminPassInput.value.trim();
+    if (!entered) return alert("❌ Enter a password!");
 
-  // ---------------- LOGIN ----------------
-  window.onload = () => {
-    const loginBtn = document.getElementById("login-btn");
-    const adminPassInput = document.getElementById("admin-pass");
-    const loginBox = document.getElementById("login-box");
-    const adminContent = document.getElementById("admin-content");
-
-    loginBtn.onclick = async () => {
-      const entered = adminPassInput.value.trim();
-      if (!entered) return alert("❌ Please enter a password!");
-
-      try {
-        const hashSnap = await adminRef.once("value");
-        const hash = hashSnap.val();
-        if (!hash) return alert("⚠️ No admin password set in database!");
-
-        if (!dcodeIO.bcrypt.compareSync(entered, hash)) {
-          return alert("❌ Incorrect password!");
-        }
-
-        // ✅ Generate login token
-        const tokenRef = await tokenRefRoot.push();
-        await tokenRef.set(true);
-        authToken = tokenRef.key;
-
-        alert("✅ Login successful!");
-        loginBox.style.display = "none";
-        adminContent.style.display = "block";
-
-        loadSettings();
-        watchUserCount();
-
-      } catch (err) {
-        console.error(err);
-        alert("❌ Error during login.");
-      }
-    };
-  };
-
-  // ---------------- SAVE SETTINGS ----------------
-  document.getElementById("save").onclick = async () => {
-    if (!authToken) return alert("❌ You must be logged in!");
-    const settings = {
-      backgroundColor: document.getElementById("bgColor").value,
-      announcement: document.getElementById("announcement").value,
-      jumpscareImage: document.getElementById("jumpscareImage").value
-    };
     try {
-      await settingsRef.set(settings);
-      alert("✅ Changes saved & live!");
+      const hashSnap = await adminRef.once("value");
+      const hash = hashSnap.val();
+      if (!hash) return alert("⚠️ Admin password not set!");
+
+      if (!dcodeIO.bcrypt.compareSync(entered, hash)) return alert("❌ Incorrect password!");
+
+      // ✅ Generate login token
+      const tokenRef = tokenRefRoot.push();
+      const now = Date.now();
+      const expires = now + 5 * 60 * 1000; // 5 min
+      await tokenRef.set({ createdAt: now, expires });
+      authToken = tokenRef.key;
+
+      loginBox.style.display = "none";
+      adminContent.style.display = "block";
+
+      loadSettings();
+      watchUserCount();
+      alert("✅ Login successful!");
+
     } catch (err) {
       console.error(err);
-      alert("❌ Failed to save settings!");
+      alert("❌ Login error");
     }
   };
+};
 
-  // ---------------- ANNOUNCEMENT ----------------
-  document.getElementById("trigger-announcement").onclick = async () => {
-    if (!authToken) return alert("❌ You must be logged in!");
-    const text = document.getElementById("announcement").value.trim();
-    if (!text) return alert("❌ No announcement text!");
-    await db.ref("announcementTriggerNow").set({ text, timestamp: Date.now() });
-    alert("📢 Announcement triggered!");
+// ---------------- LOAD SETTINGS ----------------
+function loadSettings() {
+  settingsRef.once("value").then(snapshot => {
+    const s = snapshot.val() || defaultSettings;
+    document.getElementById("bgColor").value = s.backgroundColor || defaultSettings.backgroundColor;
+    document.getElementById("announcement").value = s.announcement || defaultSettings.announcement;
+    document.getElementById("jumpscareImage").value = s.jumpscareImage || defaultSettings.jumpscareImage;
+  });
+}
+
+// ---------------- WATCH USERS ----------------
+function watchUserCount() {
+  usersRef.on("value", snap => {
+    document.getElementById("user-count").textContent = snap.numChildren() + " online";
+  });
+}
+
+// ---------------- SAFE WRITE HELPER ----------------
+async function safeWrite(path, data) {
+  if (!authToken) return alert("❌ You must log in!");
+  return db.ref(path + "/" + authToken).set(data);
+}
+
+// ---------------- SAVE SETTINGS ----------------
+document.getElementById("save").onclick = async () => {
+  const settings = {
+    backgroundColor: document.getElementById("bgColor").value,
+    announcement: document.getElementById("announcement").value,
+    jumpscareImage: document.getElementById("jumpscareImage").value
   };
+  try {
+    await safeWrite("siteSettings", settings);
+    alert("✅ Changes saved!");
+  } catch (err) {
+    console.error(err);
+    alert("❌ Save failed!");
+  }
+};
 
-  // ---------------- JUMPSCARE ----------------
-  document.getElementById("trigger-jumpscare").onclick = async () => {
-    if (!authToken) return alert("❌ You must be logged in!");
-    const image = document.getElementById("jumpscareImage").value;
-    if (!image) return alert("❌ Please enter a jumpscare image URL first!");
-    await db.ref("jumpscareTriggerNow").set({ image, timestamp: Date.now() });
-    alert("😱 Jumpscare triggered!");
-  };
+// ---------------- ANNOUNCEMENT ----------------
+document.getElementById("trigger-announcement").onclick = async () => {
+  const text = document.getElementById("announcement").value.trim();
+  if (!text) return alert("❌ No announcement!");
+  await safeWrite("announcementTriggerNow", { text, timestamp: Date.now() });
+  alert("📢 Announcement triggered!");
+};
 
-  // ---------------- RESET CLICK DATA ----------------
-  document.getElementById("reset-clickData").onclick = async () => {
-    if (!authToken) return alert("❌ You must be logged in!");
-    if (!confirm("⚠️ Are you sure you want to reset all Most Popular Games data?")) return;
-    try {
-      await db.ref("clickData").remove();
-      alert("✅ Most Popular Games data has been reset!");
-    } catch (err) {
-      console.error(err);
-      alert("❌ Error resetting data: " + err);
-    }
-  };
+// ---------------- JUMPSCARE ----------------
+document.getElementById("trigger-jumpscare").onclick = async () => {
+  const image = document.getElementById("jumpscareImage").value.trim();
+  if (!image) return alert("❌ Enter jumpscare image URL!");
+  await safeWrite("jumpscareTriggerNow", { image, timestamp: Date.now() });
+  alert("😱 Jumpscare triggered!");
+};
 
-  // ---------------- TROLL CONTROLS ----------------
-  document.getElementById("cursor-chaos").onclick = async () => {
-    if (!authToken) return alert("❌ You must be logged in!");
-    await trollRef.child("cursorChaos").set({ active: true, timestamp: Date.now() });
-  };
+// ---------------- RESET CLICK DATA ----------------
+document.getElementById("reset-clickData").onclick = async () => {
+  if (!confirm("⚠️ Reset all Most Popular Games data?")) return;
+  await safeWrite("clickData", null);
+  alert("✅ Data reset!");
+};
 
-  document.getElementById("flashbang").onclick = async () => {
-    if (!authToken) return alert("❌ You must be logged in!");
-    await trollRef.child("flashbang").set({ active: true, timestamp: Date.now() });
-  };
+// ---------------- TROLL CONTROLS ----------------
+document.getElementById("cursor-chaos").onclick = async () => await safeWrite("trollTriggers/cursorChaos", { active: true, timestamp: Date.now() });
+document.getElementById("flashbang").onclick = async () => await safeWrite("trollTriggers/flashbang", { active: true, timestamp: Date.now() });
+document.getElementById("reverse-controls").onclick = async () => await safeWrite("trollTriggers/reverseControls", { active: true, timestamp: Date.now() });
 
-  document.getElementById("reverse-controls").onclick = async () => {
-    if (!authToken) return alert("❌ You must be logged in!");
-    await trollRef.child("reverseControls").set({ active: true, timestamp: Date.now() });
-  };
+// ---------------- SOUND CONTROL ----------------
+const soundMenu = document.getElementById("sound-menu");
+const stopSoundBtn = document.getElementById("stop-sound");
+const chooseSoundBtn = document.getElementById("choose-sound");
+const soundFiles = ["clashintro.mp3","rainingtacos.mp3","brainrot.mp3","wideputin.mp3","crabrave.mp3","sodapop.mp3","galaxy.mp3","67.mp3","smokedetector.mp3"];
 
-  // ---------------- SOUND CONTROL ----------------
-  const soundMenu = document.getElementById("sound-menu");
-  const stopSoundBtn = document.getElementById("stop-sound");
-  const chooseSoundBtn = document.getElementById("choose-sound");
-  const soundFiles = [
-    "clashintro.mp3",
-    "rainingtacos.mp3",
-    "brainrot.mp3",
-    "wideputin.mp3",
-    "crabrave.mp3",
-    "sodapop.mp3",
-    "galaxy.mp3",
-    "67.mp3",
-    "smokedetector.mp3"
-  ];
+chooseSoundBtn.onclick = () => {
+  if (!authToken) return alert("❌ You must log in!");
+  soundMenu.innerHTML = "";
+  soundFiles.forEach(file => {
+    const btn = document.createElement("button");
+    btn.textContent = "▶️ " + file;
+    btn.style.display = "block";
+    btn.style.margin = "5px 0";
+    btn.onclick = async () => {
+      await safeWrite("trollTriggers/creepySound", { url: file, timestamp: Date.now() });
+      alert(`🔊 ${file} triggered!`);
+    };
+    soundMenu.appendChild(btn);
+  });
+  soundMenu.style.display = soundMenu.style.display === "none" ? "block" : "none";
+};
 
-  chooseSoundBtn.onclick = () => {
-    if (!authToken) return alert("❌ You must be logged in!");
-    soundMenu.innerHTML = "";
-    soundFiles.forEach(file => {
-      const btn = document.createElement("button");
-      btn.textContent = "▶️ " + file;
-      btn.style.display = "block";
-      btn.style.margin = "5px 0";
-      btn.onclick = async () => {
-        await trollRef.child("creepySound").set({ url: file, timestamp: Date.now() });
-        alert(`🔊 ${file} triggered!`);
-      };
-      soundMenu.appendChild(btn);
-    });
-    soundMenu.style.display = soundMenu.style.display === "none" ? "block" : "none";
-  };
+stopSoundBtn.onclick = async () => {
+  await safeWrite("trollTriggers/creepySound", null);
+  alert("⏹️ Audio stopped.");
+};
 
-  stopSoundBtn.onclick = async () => {
-    if (!authToken) return alert("❌ You must be logged in!");
-    await trollRef.child("creepySound").set(null);
-    alert("⏹️ Audio stopped.");
-  };
-
-  // ---------------- REVERT BUTTONS ----------------
-  document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = defaultSettings.backgroundColor;
-  document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
-  document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
+// ---------------- REVERT BUTTONS ----------------
+document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = defaultSettings.backgroundColor;
+document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
+document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
 
 </script>
 </body>
