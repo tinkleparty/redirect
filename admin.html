@@ -263,33 +263,49 @@
   };
 </script>
 <script>
+window.onload = () => {
+  // Make sure Firebase is initialized before this runs
   const adminRef = db.ref("admin/hashedPassword");
 
-  document.getElementById("login-btn").onclick = () => {
-    const entered = document.getElementById("admin-pass").value;
+  const loginBtn = document.getElementById("login-btn");
+  const adminPassInput = document.getElementById("admin-pass");
+  const loginBox = document.getElementById("login-box");
+  const adminContent = document.getElementById("admin-content");
 
-    adminRef.once("value").then(snap => {
-      const hash = snap.val();
+  loginBtn.onclick = () => {
+    const entered = adminPassInput.value.trim();
+    if (!entered) return alert("❌ Please enter a password!");
 
-      if (!hash) return alert("⚠️ No admin password set in database!");
+    // Read hashed password from Firebase
+    adminRef.once("value")
+      .then(snapshot => {
+        const hash = snapshot.val();
 
-      // Synchronous comparison
-      const match = bcrypt.compareSync(entered, hash);
+        if (!hash) {
+          return alert("⚠️ No admin password set in database!");
+        }
 
-      if (match) {
-        alert("✅ Login successful!");
-        document.getElementById("login-box").style.display = "none";
-        document.getElementById("admin-content").style.display = "block";
-        loadSettings();
-        watchUserCount();
-      } else {
-        alert("❌ Incorrect password!");
-      }
-    }).catch(err => {
-      console.error(err);
-      alert("❌ Error reading admin password from database");
-    });
+        // Use dcodeIO.bcrypt (from bcryptjs)
+        const match = dcodeIO.bcrypt.compareSync(entered, hash);
+
+        if (match) {
+          alert("✅ Login successful!");
+          loginBox.style.display = "none";
+          adminContent.style.display = "block";
+
+          // Load settings and user count once logged in
+          loadSettings();
+          watchUserCount();
+        } else {
+          alert("❌ Incorrect password!");
+        }
+      })
+      .catch(err => {
+        console.error("Error reading admin password:", err);
+        alert("❌ Error reading admin password from database");
+      });
   };
+};
 </script>
 </body>
 </html>
