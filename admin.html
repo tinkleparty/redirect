@@ -264,7 +264,6 @@
   };
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
-
 <script>
   const adminRef = db.ref("admin/hashedPassword");
 
@@ -275,16 +274,23 @@
 
     if (!hash) return alert("⚠️ No admin password set in database!");
 
-    const match = await bcrypt.compare(entered, hash);
-    if (match) {
-      alert("✅ Login successful!");
-      document.getElementById("login-box").style.display = "none";
-      document.getElementById("admin-content").style.display = "block";
-      loadSettings();
-      watchUserCount();
-    } else {
-      alert("❌ Incorrect password!");
-    }
+    // Use bcrypt.compare with callback in the browser
+    bcrypt.compare(entered, hash, (err, match) => {
+      if (err) {
+        console.error(err);
+        return alert("❌ Error checking password");
+      }
+
+      if (match) {
+        alert("✅ Login successful!");
+        document.getElementById("login-box").style.display = "none";
+        document.getElementById("admin-content").style.display = "block";
+        loadSettings();
+        watchUserCount();
+      } else {
+        alert("❌ Incorrect password!");
+      }
+    });
   };
 </script>
 </body>
