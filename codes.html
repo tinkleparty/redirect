@@ -184,6 +184,7 @@ h2 {
 <div id="sidebar">
   <div class="sidebar-item active" data-category="all">All Games</div>
   <div class="sidebar-item" data-category="popular">⭐ Most Popular</div>
+  <div class="sidebar-item" data-category="new">🆕 New Games</div>
   <div class="sidebar-item" data-category="action">⚔️ Action</div>
   <div class="sidebar-item" data-category="horror">👻 Horror</div>
   <div class="sidebar-item" data-category="arcade">🕹️ Arcade</div>
@@ -694,6 +695,18 @@ function showPopular() {
   attachButtonEvents(gamesContainer);
 }
 
+/* --- New Games --- */
+function showNewGames() {
+  // Take the last 10 game cards from allCards
+  const recent = allCards.slice(-10);
+  gamesContainer.innerHTML = "";
+  recent.forEach(c => {
+    const clone = c.cloneNode(true);
+    gamesContainer.appendChild(clone);
+  });
+  attachButtonEvents(gamesContainer);
+}
+  
 /* --- Search --- */
 function filterSearch(term) {
   const active = document.querySelector(".sidebar-item.active").dataset.category;
@@ -713,8 +726,11 @@ sidebarItems.forEach(item => {
     item.classList.add("active");
     title.textContent = item.textContent.replace(/^[^a-zA-Z]+/, "");
     const cat = item.dataset.category;
+
     if (cat === "popular") showPopular();
+    else if (cat === "new") showNewGames();
     else showCategory(cat);
+
     filterSearch(searchBar.value);
   });
 });
