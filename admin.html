@@ -114,7 +114,6 @@
     <button id="cursor-chaos">🌀 Cursor Chaos</button>
   </div>
   
-
   <div class="group" style="flex-direction: column; align-items: flex-start;">
     <button id="choose-sound">🎵 Play Sound</button>
     <button id="stop-sound">⏹️ Stop Audio</button>
@@ -158,6 +157,8 @@
   const settingsRef = db.ref("siteSettings");
   const trollRef = db.ref("trollTriggers");
   const usersRef = db.ref("connectedUsers");
+  const adminRef = db.ref("admin/hashedPassword");
+  const tokenRefRoot = db.ref("admin/loginTokens");
 
   const defaultSettings = {
     backgroundColor: "#0a0a0a",
@@ -165,6 +166,9 @@
     jumpscareImage: ""
   };
 
+  let authToken = null; // 🔑 Token for authenticated actions
+
+  // ---------------- LOAD SETTINGS ----------------
   function loadSettings() {
     settingsRef.once("value").then(snapshot => {
       const s = snapshot.val() || defaultSettings;
@@ -174,65 +178,121 @@
     });
   }
 
-  document.getElementById("save").onclick = () => {
-    const settings = {
-      backgroundColor: document.getElementById("bgColor").value,
-      announcement: document.getElementById("announcement").value,
-      jumpscareImage: document.getElementById("jumpscareImage").value
-    };
-    settingsRef.set(settings).then(() => alert("✅ Changes saved & live!"));
-  };
-
-  document.getElementById("trigger-announcement").onclick = () => {
-    const text = document.getElementById("announcement").value.trim();
-    if (!text) return alert("❌ No announcement text!");
-    db.ref("announcementTriggerNow").set({
-      text: text,
-      timestamp: Date.now()
-    });
-    alert("📢 Announcement triggered!");
-  };
-
-  document.getElementById("reset-clickData").onclick = () => {
-  if (confirm("⚠️ Are you sure you want to reset all Most Popular Games data?")) {
-    db.ref("clickData").remove()
-      .then(() => alert("✅ Most Popular Games data has been reset!"))
-      .catch(err => alert("❌ Error resetting data: " + err));
-    }
-  };
-
-  document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = defaultSettings.backgroundColor;
-  document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
-  document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
-  document.getElementById("trigger-jumpscare").onclick = () => {
-    const image = document.getElementById("jumpscareImage").value;
-    if (!image) return alert("❌ Please enter a jumpscare image URL first!");
-    db.ref("jumpscareTriggerNow").set({ image, timestamp: Date.now() });
-    alert("😱 Jumpscare triggered!");
-  };
-
-  document.getElementById("cursor-chaos").onclick = () => {
-    trollRef.child("cursorChaos").set({ active: true, timestamp: Date.now() });
-  };
-
-  document.getElementById("flashbang").onclick = () => {
-    trollRef.child("flashbang").set({ active: true, timestamp: Date.now() });
-  };
-
-  document.getElementById("reverse-controls").onclick = () => {
-    trollRef.child("reverseControls").set({ active: true, timestamp: Date.now() });
-  };
-
+  // ---------------- WATCH USERS ----------------
   function watchUserCount() {
     usersRef.on("value", snap => {
       const count = snap.numChildren();
       document.getElementById("user-count").textContent = count + " online";
     });
   }
+
+  // ---------------- LOGIN ----------------
+  window.onload = () => {
+    const loginBtn = document.getElementById("login-btn");
+    const adminPassInput = document.getElementById("admin-pass");
+    const loginBox = document.getElementById("login-box");
+    const adminContent = document.getElementById("admin-content");
+
+    loginBtn.onclick = async () => {
+      const entered = adminPassInput.value.trim();
+      if (!entered) return alert("❌ Please enter a password!");
+
+      try {
+        const hashSnap = await adminRef.once("value");
+        const hash = hashSnap.val();
+        if (!hash) return alert("⚠️ No admin password set in database!");
+
+        if (!dcodeIO.bcrypt.compareSync(entered, hash)) {
+          return alert("❌ Incorrect password!");
+        }
+
+        // ✅ Generate login token
+        const tokenRef = await tokenRefRoot.push();
+        await tokenRef.set(true);
+        authToken = tokenRef.key;
+
+        alert("✅ Login successful!");
+        loginBox.style.display = "none";
+        adminContent.style.display = "block";
+
+        loadSettings();
+        watchUserCount();
+
+      } catch (err) {
+        console.error(err);
+        alert("❌ Error during login.");
+      }
+    };
+  };
+
+  // ---------------- SAVE SETTINGS ----------------
+  document.getElementById("save").onclick = async () => {
+    if (!authToken) return alert("❌ You must be logged in!");
+    const settings = {
+      backgroundColor: document.getElementById("bgColor").value,
+      announcement: document.getElementById("announcement").value,
+      jumpscareImage: document.getElementById("jumpscareImage").value
+    };
+    try {
+      await settingsRef.set(settings);
+      alert("✅ Changes saved & live!");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Failed to save settings!");
+    }
+  };
+
+  // ---------------- ANNOUNCEMENT ----------------
+  document.getElementById("trigger-announcement").onclick = async () => {
+    if (!authToken) return alert("❌ You must be logged in!");
+    const text = document.getElementById("announcement").value.trim();
+    if (!text) return alert("❌ No announcement text!");
+    await db.ref("announcementTriggerNow").set({ text, timestamp: Date.now() });
+    alert("📢 Announcement triggered!");
+  };
+
+  // ---------------- JUMPSCARE ----------------
+  document.getElementById("trigger-jumpscare").onclick = async () => {
+    if (!authToken) return alert("❌ You must be logged in!");
+    const image = document.getElementById("jumpscareImage").value;
+    if (!image) return alert("❌ Please enter a jumpscare image URL first!");
+    await db.ref("jumpscareTriggerNow").set({ image, timestamp: Date.now() });
+    alert("😱 Jumpscare triggered!");
+  };
+
+  // ---------------- RESET CLICK DATA ----------------
+  document.getElementById("reset-clickData").onclick = async () => {
+    if (!authToken) return alert("❌ You must be logged in!");
+    if (!confirm("⚠️ Are you sure you want to reset all Most Popular Games data?")) return;
+    try {
+      await db.ref("clickData").remove();
+      alert("✅ Most Popular Games data has been reset!");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error resetting data: " + err);
+    }
+  };
+
+  // ---------------- TROLL CONTROLS ----------------
+  document.getElementById("cursor-chaos").onclick = async () => {
+    if (!authToken) return alert("❌ You must be logged in!");
+    await trollRef.child("cursorChaos").set({ active: true, timestamp: Date.now() });
+  };
+
+  document.getElementById("flashbang").onclick = async () => {
+    if (!authToken) return alert("❌ You must be logged in!");
+    await trollRef.child("flashbang").set({ active: true, timestamp: Date.now() });
+  };
+
+  document.getElementById("reverse-controls").onclick = async () => {
+    if (!authToken) return alert("❌ You must be logged in!");
+    await trollRef.child("reverseControls").set({ active: true, timestamp: Date.now() });
+  };
+
+  // ---------------- SOUND CONTROL ----------------
   const soundMenu = document.getElementById("sound-menu");
   const stopSoundBtn = document.getElementById("stop-sound");
   const chooseSoundBtn = document.getElementById("choose-sound");
-  let currentAudio = null;
   const soundFiles = [
     "clashintro.mp3",
     "rainingtacos.mp3",
@@ -244,81 +304,35 @@
     "67.mp3",
     "smokedetector.mp3"
   ];
+
   chooseSoundBtn.onclick = () => {
+    if (!authToken) return alert("❌ You must be logged in!");
     soundMenu.innerHTML = "";
     soundFiles.forEach(file => {
       const btn = document.createElement("button");
       btn.textContent = "▶️ " + file;
       btn.style.display = "block";
       btn.style.margin = "5px 0";
-      btn.onclick = () => {
-        trollRef.child("creepySound").set({
-          url: file,
-          timestamp: Date.now()
-        });
+      btn.onclick = async () => {
+        await trollRef.child("creepySound").set({ url: file, timestamp: Date.now() });
         alert(`🔊 ${file} triggered!`);
       };
       soundMenu.appendChild(btn);
     });
     soundMenu.style.display = soundMenu.style.display === "none" ? "block" : "none";
   };
-  stopSoundBtn.onclick = () => {
-    if (currentAudio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-      currentAudio = null;
-      alert("⏹️ Audio stopped.");
-      // Clear trigger so clients know it stopped
-      trollRef.child("creepySound").set(null);
-    } else {
-      alert("🔇 No audio is currently playing.");
-    }
+
+  stopSoundBtn.onclick = async () => {
+    if (!authToken) return alert("❌ You must be logged in!");
+    await trollRef.child("creepySound").set(null);
+    alert("⏹️ Audio stopped.");
   };
-</script>
-<script>
-window.onload = () => {
-  // Make sure Firebase is initialized before this runs
-  const adminRef = db.ref("admin/hashedPassword");
 
-  const loginBtn = document.getElementById("login-btn");
-  const adminPassInput = document.getElementById("admin-pass");
-  const loginBox = document.getElementById("login-box");
-  const adminContent = document.getElementById("admin-content");
+  // ---------------- REVERT BUTTONS ----------------
+  document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = defaultSettings.backgroundColor;
+  document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
+  document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
 
-  loginBtn.onclick = () => {
-    const entered = adminPassInput.value.trim();
-    if (!entered) return alert("❌ Please enter a password!");
-
-    // Read hashed password from Firebase
-    adminRef.once("value")
-      .then(snapshot => {
-        const hash = snapshot.val();
-
-        if (!hash) {
-          return alert("⚠️ No admin password set in database!");
-        }
-
-        // Use dcodeIO.bcrypt (from bcryptjs)
-        const match = dcodeIO.bcrypt.compareSync(entered, hash);
-
-        if (match) {
-          alert("✅ Login successful!");
-          loginBox.style.display = "none";
-          adminContent.style.display = "block";
-
-          // Load settings and user count once logged in
-          loadSettings();
-          watchUserCount();
-        } else {
-          alert("❌ Incorrect password!");
-        }
-      })
-      .catch(err => {
-        console.error("Error reading admin password:", err);
-        alert("❌ Error reading admin password from database");
-      });
-  };
-};
 </script>
 </body>
 </html>
