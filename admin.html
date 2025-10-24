@@ -205,14 +205,57 @@ document.getElementById("reset-clickData").onclick = async () => {
 };
 
 // ---------------- TROLL CONTROLS ----------------
-document.getElementById("cursor-chaos").onclick = async () => {
-  await safeWrite(trollRef.child("cursorChaos"), { active: true, timestamp: Date.now() });
+async function triggerTroll(refName) {
+  const user = auth.currentUser;
+  if (!user) return alert("❌ You must be logged in!");
+  await trollRef.child(refName).set({ active: true, timestamp: Date.now() });
+  alert(`✅ ${refName} triggered!`);
+}
+
+document.getElementById("cursor-chaos").onclick = () => triggerTroll("cursorChaos");
+document.getElementById("flashbang").onclick = () => triggerTroll("flashbang");
+document.getElementById("reverse-controls").onclick = () => triggerTroll("reverseControls");
+
+// ---------------- SOUND CONTROL ----------------
+const soundMenu = document.getElementById("sound-menu");
+const stopSoundBtn = document.getElementById("stop-sound");
+const chooseSoundBtn = document.getElementById("choose-sound");
+const soundFiles = [
+  "clashintro.mp3",
+  "rainingtacos.mp3",
+  "brainrot.mp3",
+  "wideputin.mp3",
+  "crabrave.mp3",
+  "sodapop.mp3",
+  "galaxy.mp3",
+  "67.mp3",
+  "smokedetector.mp3"
+];
+
+chooseSoundBtn.onclick = () => {
+  const user = auth.currentUser;
+  if (!user) return alert("❌ You must be logged in!");
+  
+  soundMenu.innerHTML = "";
+  soundFiles.forEach(file => {
+    const btn = document.createElement("button");
+    btn.textContent = "▶️ " + file;
+    btn.style.display = "block";
+    btn.style.margin = "5px 0";
+    btn.onclick = async () => {
+      await trollRef.child("creepySound").set({ url: file, timestamp: Date.now() });
+      alert(`🔊 ${file} triggered!`);
+    };
+    soundMenu.appendChild(btn);
+  });
+  soundMenu.style.display = soundMenu.style.display === "none" ? "block" : "none";
 };
-document.getElementById("flashbang").onclick = async () => {
-  await safeWrite(trollRef.child("flashbang"), { active: true, timestamp: Date.now() });
-};
-document.getElementById("reverse-controls").onclick = async () => {
-  await safeWrite(trollRef.child("reverseControls"), { active: true, timestamp: Date.now() });
+
+stopSoundBtn.onclick = async () => {
+  const user = auth.currentUser;
+  if (!user) return alert("❌ You must be logged in!");
+  await trollRef.child("creepySound").set(null);
+  alert("⏹️ Audio stopped!");
 };
 
 // ---------------- REVERT BUTTONS ----------------
