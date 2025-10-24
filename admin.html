@@ -177,9 +177,10 @@ function watchUserCount() {
 }
 
 // ---------------- SAFE WRITE HELPER ----------------
-async function safeWrite(path, data) {
-  if (!authToken) return alert("❌ You must log in!");
-  return db.ref(path + "/" + authToken).set(data);
+async function safeWrite(path, data, useToken = false) {
+  if (!authToken && useToken) return alert("❌ You must log in!");
+  const writePath = useToken ? path + "/" + authToken : path;
+  return db.ref(writePath).set(data);
 }
 
 // ---------------- SAVE SETTINGS ----------------
@@ -190,7 +191,8 @@ document.getElementById("save").onclick = async () => {
     jumpscareImage: document.getElementById("jumpscareImage").value
   };
   try {
-    await safeWrite("siteSettings", settings);
+    // Save global site settings
+    await safeWrite("siteSettings", settings, false);
     alert("✅ Changes saved!");
   } catch (err) {
     console.error(err);
@@ -202,7 +204,8 @@ document.getElementById("save").onclick = async () => {
 document.getElementById("trigger-announcement").onclick = async () => {
   const text = document.getElementById("announcement").value.trim();
   if (!text) return alert("❌ No announcement!");
-  await safeWrite("announcementTriggerNow", { text, timestamp: Date.now() });
+  // Save to global path so codes.html sees it
+  await safeWrite("announcementTriggerNow", { text, timestamp: Date.now() }, false);
   alert("📢 Announcement triggered!");
 };
 
@@ -210,21 +213,27 @@ document.getElementById("trigger-announcement").onclick = async () => {
 document.getElementById("trigger-jumpscare").onclick = async () => {
   const image = document.getElementById("jumpscareImage").value.trim();
   if (!image) return alert("❌ Enter jumpscare image URL!");
-  await safeWrite("jumpscareTriggerNow", { image, timestamp: Date.now() });
+  await safeWrite("jumpscareTriggerNow", { image, timestamp: Date.now() }, false);
   alert("😱 Jumpscare triggered!");
 };
 
 // ---------------- RESET CLICK DATA ----------------
 document.getElementById("reset-clickData").onclick = async () => {
   if (!confirm("⚠️ Reset all Most Popular Games data?")) return;
-  await safeWrite("clickData", null);
+  await safeWrite("clickData", null, false);
   alert("✅ Data reset!");
 };
 
 // ---------------- TROLL CONTROLS ----------------
-document.getElementById("cursor-chaos").onclick = async () => await safeWrite("trollTriggers/cursorChaos", { active: true, timestamp: Date.now() });
-document.getElementById("flashbang").onclick = async () => await safeWrite("trollTriggers/flashbang", { active: true, timestamp: Date.now() });
-document.getElementById("reverse-controls").onclick = async () => await safeWrite("trollTriggers/reverseControls", { active: true, timestamp: Date.now() });
+document.getElementById("cursor-chaos").onclick = async () => {
+  await safeWrite("trollTriggers/cursorChaos", { active: true, timestamp: Date.now() }, false);
+};
+document.getElementById("flashbang").onclick = async () => {
+  await safeWrite("trollTriggers/flashbang", { active: true, timestamp: Date.now() }, false);
+};
+document.getElementById("reverse-controls").onclick = async () => {
+  await safeWrite("trollTriggers/reverseControls", { active: true, timestamp: Date.now() }, false);
+};
 
 // ---------------- SOUND CONTROL ----------------
 const soundMenu = document.getElementById("sound-menu");
@@ -241,7 +250,7 @@ chooseSoundBtn.onclick = () => {
     btn.style.display = "block";
     btn.style.margin = "5px 0";
     btn.onclick = async () => {
-      await safeWrite("trollTriggers/creepySound", { url: file, timestamp: Date.now() });
+      await safeWrite("trollTriggers/creepySound", { url: file, timestamp: Date.now() }, false);
       alert(`🔊 ${file} triggered!`);
     };
     soundMenu.appendChild(btn);
@@ -250,7 +259,7 @@ chooseSoundBtn.onclick = () => {
 };
 
 stopSoundBtn.onclick = async () => {
-  await safeWrite("trollTriggers/creepySound", null);
+  await safeWrite("trollTriggers/creepySound", null, false);
   alert("⏹️ Audio stopped.");
 };
 
