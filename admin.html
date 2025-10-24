@@ -109,6 +109,7 @@
   <div class="group">
     <button id="cursor-chaos">🌀 Cursor Chaos</button>
   </div>
+  
 
   <div class="group" style="flex-direction: column; align-items: flex-start;">
     <button id="choose-sound">🎵 Play Sound</button>
@@ -121,6 +122,11 @@
     <button id="reverse-controls">🔄 Reverse Controls</button>
   </div>
 
+  <div class="group">
+    <button id="reset-clickData">🗑️ Reset Most Popular Games</button>
+  </div>
+
+  
   <label>👥 Live User Counter:</label>
   <div class="group">
     <span id="user-count">Loading...</span>
@@ -186,6 +192,14 @@
       timestamp: Date.now()
     });
     alert("📢 Announcement triggered!");
+  };
+
+  document.getElementById("reset-clickData").onclick = () => {
+  if (confirm("⚠️ Are you sure you want to reset all Most Popular Games data?")) {
+    db.ref("clickData").remove()
+      .then(() => alert("✅ Most Popular Games data has been reset!"))
+      .catch(err => alert("❌ Error resetting data: " + err));
+    }
   };
 
   document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = defaultSettings.backgroundColor;
