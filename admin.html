@@ -22,8 +22,8 @@
 
 <div id="login-box">
   <h2>🔒 Admin Login</h2>
-  <input type="email" id="admin-email" placeholder="Email">
-  <input type="password" id="admin-pass" placeholder="Password">
+  <input type="email" id="admin-email" placeholder="Enter email..." />
+  <input type="password" id="admin-pass" placeholder="Enter password..." />
   <button id="login-btn">Login</button>
 </div>
 
@@ -86,13 +86,12 @@
 
   <br>
   <button id="save">💾 Save Changes</button>
-  <button id="logout" style="background:#d9534f;">🚪 Logout</button>
 </div>
 
-<!-- Firebase -->
+<!-- Firebase v9 compat build -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
 <script>
 const firebaseConfig = {
@@ -107,77 +106,48 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
 const db = firebase.database();
+const auth = firebase.auth();
 
 const settingsRef = db.ref("siteSettings");
 const trollRef = db.ref("trollTriggers");
 const usersRef = db.ref("connectedUsers");
 
 // ---------------- LOGIN ----------------
-const loginBtn = document.getElementById("login-btn");
-const logoutBtn = document.getElementById("logout");
-const loginBox = document.getElementById("login-box");
-const adminContent = document.getElementById("admin-content");
+window.onload = () => {
+  const loginBtn = document.getElementById("login-btn");
+  const emailInput = document.getElementById("admin-email");
+  const passInput = document.getElementById("admin-pass");
+  const loginBox = document.getElementById("login-box");
+  const adminContent = document.getElementById("admin-content");
 
-loginBtn.onclick = async () => {
-  const email = document.getElementById("admin-email").value.trim();
-  const password = document.getElementById("admin-pass").value.trim();
-  if (!email || !password) return alert("❌ Enter email & password!");
+  loginBtn.onclick = async () => {
+    const email = emailInput.value.trim();
+    const password = passInput.value.trim();
+    if (!email || !password) return alert("❌ Enter email and password!");
 
-  try {
-    const userCredential = await auth.signInWithEmailAndPassword(email, password);
-    const user = userCredential.user;
+    try {
+      await auth.signInWithEmailAndPassword(email, password);
+      loginBox.style.display = "none";
+      adminContent.style.display = "block";
 
-    // Check if user is admin
-    const adminSnap = await db.ref('admins/' + user.uid).once('value');
-    if (!adminSnap.exists()) {
-      alert("❌ You are not an admin!");
-      await auth.signOut();
-      return;
+      loadSettings();
+      watchUserCount();
+      alert("✅ Login successful!");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Login failed: " + err.message);
     }
-
-    loginBox.style.display = "none";
-    adminContent.style.display = "block";
-    loadSettings();
-    watchUserCount();
-    alert("✅ Login successful!");
-
-  } catch (err) {
-    console.error(err);
-    alert("❌ Login failed: " + err.message);
-  }
+  };
 };
-
-logoutBtn.onclick = async () => {
-  await auth.signOut();
-  loginBox.style.display = "block";
-  adminContent.style.display = "none";
-  alert("🚪 Logged out");
-};
-
-// ---------------- AUTH CHECK ----------------
-auth.onAuthStateChanged(user => {
-  if (user) {
-    // Optional: auto-show admin if logged in
-    loginBox.style.display = "none";
-    adminContent.style.display = "block";
-    loadSettings();
-    watchUserCount();
-  } else {
-    loginBox.style.display = "block";
-    adminContent.style.display = "none";
-  }
-});
 
 // ---------------- LOAD SETTINGS ----------------
-const defaultSettings = { backgroundColor:"#0a0a0a", announcement:"", jumpscareImage:"" };
 function loadSettings() {
   settingsRef.once("value").then(snapshot => {
-    const s = snapshot.val() || defaultSettings;
-    document.getElementById("bgColor").value = s.backgroundColor || defaultSettings.backgroundColor;
-    document.getElementById("announcement").value = s.announcement || defaultSettings.announcement;
-    document.getElementById("jumpscareImage").value = s.jumpscareImage || defaultSettings.jumpscareImage;
+    const s = snapshot.val() || { backgroundColor: "#0a0a0a", announcement: "", jumpscareImage: "" };
+    document.getElementById("bgColor").value = s.backgroundColor;
+    document.getElementById("announcement").value = s.announcement;
+    document.getElementById("jumpscareImage").value = s.jumpscareImage;
   });
 }
 
@@ -189,73 +159,66 @@ function watchUserCount() {
 }
 
 // ---------------- SAFE WRITE ----------------
-async function safeWrite(path, data) {
+async function safeWrite(ref, data) {
   const user = auth.currentUser;
   if (!user) return alert("❌ You must be logged in!");
-  return db.ref(path).set(data);
+  await ref.set(data);
 }
 
-// ---------------- BUTTON HANDLERS ----------------
+// ---------------- SAVE SETTINGS ----------------
 document.getElementById("save").onclick = async () => {
   const settings = {
     backgroundColor: document.getElementById("bgColor").value,
     announcement: document.getElementById("announcement").value,
     jumpscareImage: document.getElementById("jumpscareImage").value
   };
-  try { await safeWrite("siteSettings", settings); alert("✅ Changes saved!"); }
-  catch(e){ console.error(e); alert("❌ Save failed!"); }
+  try {
+    await safeWrite(settingsRef, settings);
+    alert("✅ Changes saved!");
+  } catch (err) {
+    console.error(err);
+    alert("❌ Save failed!");
+  }
 };
 
+// ---------------- ANNOUNCEMENT ----------------
 document.getElementById("trigger-announcement").onclick = async () => {
   const text = document.getElementById("announcement").value.trim();
-  if(!text) return alert("❌ No announcement!");
-  await safeWrite("announcementTriggerNow", { text, timestamp: Date.now() });
+  if (!text) return alert("❌ No announcement!");
+  await safeWrite(db.ref("announcementTriggerNow"), { text, timestamp: Date.now() });
   alert("📢 Announcement triggered!");
 };
 
+// ---------------- JUMPSCARE ----------------
 document.getElementById("trigger-jumpscare").onclick = async () => {
   const image = document.getElementById("jumpscareImage").value.trim();
-  if(!image) return alert("❌ Enter jumpscare image URL!");
-  await safeWrite("jumpscareTriggerNow", { image, timestamp: Date.now() });
+  if (!image) return alert("❌ Enter jumpscare image URL!");
+  await safeWrite(db.ref("jumpscareTriggerNow"), { image, timestamp: Date.now() });
   alert("😱 Jumpscare triggered!");
 };
 
+// ---------------- RESET CLICK DATA ----------------
 document.getElementById("reset-clickData").onclick = async () => {
-  if(!confirm("⚠️ Reset all Most Popular Games data?")) return;
-  await safeWrite("clickData", null);
+  if (!confirm("⚠️ Reset all Most Popular Games data?")) return;
+  await safeWrite(db.ref("clickData"), null);
   alert("✅ Data reset!");
 };
 
-document.getElementById("cursor-chaos").onclick = async () => await safeWrite("trollTriggers/cursorChaos", { active:true, timestamp:Date.now() });
-document.getElementById("flashbang").onclick = async () => await safeWrite("trollTriggers/flashbang", { active:true, timestamp:Date.now() });
-document.getElementById("reverse-controls").onclick = async () => await safeWrite("trollTriggers/reverseControls", { active:true, timestamp:Date.now() });
-
-// Sound buttons
-const soundMenu = document.getElementById("sound-menu");
-const stopSoundBtn = document.getElementById("stop-sound");
-const chooseSoundBtn = document.getElementById("choose-sound");
-const soundFiles = ["clashintro.mp3","rainingtacos.mp3","brainrot.mp3","wideputin.mp3","crabrave.mp3","sodapop.mp3","galaxy.mp3","67.mp3","smokedetector.mp3"];
-
-chooseSoundBtn.onclick = () => {
-  if(!auth.currentUser) return alert("❌ Login first!");
-  soundMenu.innerHTML="";
-  soundFiles.forEach(file=>{
-    const btn=document.createElement("button");
-    btn.textContent="▶️ "+file;
-    btn.style.display="block"; btn.style.margin="5px 0";
-    btn.onclick=async()=>{ await safeWrite("trollTriggers/creepySound",{url:file,timestamp:Date.now()}); alert(`🔊 ${file} triggered!`);}
-    soundMenu.appendChild(btn);
-  });
-  soundMenu.style.display = soundMenu.style.display === "none" ? "block" : "none";
+// ---------------- TROLL CONTROLS ----------------
+document.getElementById("cursor-chaos").onclick = async () => {
+  await safeWrite(trollRef.child("cursorChaos"), { active: true, timestamp: Date.now() });
+};
+document.getElementById("flashbang").onclick = async () => {
+  await safeWrite(trollRef.child("flashbang"), { active: true, timestamp: Date.now() });
+};
+document.getElementById("reverse-controls").onclick = async () => {
+  await safeWrite(trollRef.child("reverseControls"), { active: true, timestamp: Date.now() });
 };
 
-stopSoundBtn.onclick = async () => { await safeWrite("trollTriggers/creepySound", null); alert("⏹️ Audio stopped."); };
-
 // ---------------- REVERT BUTTONS ----------------
-document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = defaultSettings.backgroundColor;
-document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = defaultSettings.announcement;
-document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = defaultSettings.jumpscareImage;
-
+document.getElementById("revert-bg").onclick = () => document.getElementById("bgColor").value = "#0a0a0a";
+document.getElementById("revert-ann").onclick = () => document.getElementById("announcement").value = "";
+document.getElementById("revert-jumpimg").onclick = () => document.getElementById("jumpscareImage").value = "";
 </script>
 </body>
 </html>
