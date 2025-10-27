@@ -735,10 +735,13 @@ searchBar.addEventListener("input", e => filterSearch(e.target.value));
 attachButtonEvents();
 showCategory("all");
 </script>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
-  import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+  import {
+    getDatabase, ref, get, set, onValue, push, onDisconnect
+  } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
   import { getAuth, signInAnonymously, onAuthStateChanged } 
     from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
   
@@ -747,7 +750,7 @@ showCategory("all");
     authDomain: "mostpopular-39c60.firebaseapp.com",
     databaseURL: "https://mostpopular-39c60-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "mostpopular-39c60",
-    storageBucket: "mostpopular-39c60.firebasestorage.app",
+    storageBucket: "mostpopular-39c60.firebasedatabase.app",
     messagingSenderId: "939775132675",
     appId: "1:939775132675:web:7d40bd8fff497c53553a36",
     measurementId: "G-XTTQ03YFN9"
@@ -757,7 +760,7 @@ showCategory("all");
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
 
-    // --- 🔐 Anonymous Auth (must come before database use) ---
+  // --- 🔐 Anonymous Auth (must come before database use) ---
   const auth = getAuth(app);
   signInAnonymously(auth)
     .then(() => console.log("✅ Signed in anonymously"))
@@ -784,7 +787,8 @@ showCategory("all");
     return snapshot.exists() ? snapshot.val() : {};
   }
 
-  // --- Hook into your existing buttons ---
+  // --- Hook into your existing buttons (override to include Firebase increment) ---
+  // This keeps the exact same behavior you had: localStorage + global Firebase counts.
   window.attachButtonEvents = function(container = document) {
     container.querySelectorAll(".get-code").forEach(btn => {
       btn.addEventListener("click", async () => {
@@ -792,7 +796,13 @@ showCategory("all");
         const code = card.dataset.code;
         const name = card.querySelector(".game-name").textContent;
 
-        await incrementGameClick(name); // 🔥 Save global count to Firebase
+        // Firebase increment (uses same authenticated app)
+        try {
+          await incrementGameClick(name); // 🔥 Save global count to Firebase
+        } catch (e) {
+          console.error("incrementGameClick failed:", e);
+        }
+
         navigator.clipboard.writeText(code)
           .then(() => showNotification("Copied! Code: " + code, true))
           .catch(() => showNotification("Failed to copy code", false));
@@ -804,6 +814,7 @@ showCategory("all");
     });
   };
 
+  // keep window.showPopular signature the same (reads counts from Firebase)
   window.showPopular = async function() {
     const clickData = await getAllClickData();
     const ranked = allCards
@@ -826,30 +837,13 @@ showCategory("all");
     });
     attachButtonEvents(gamesContainer);
   };
-</script>
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
-<script>
-  // === Firebase Config ===
-  const firebaseConfig = {
-    apiKey: "AIzaSyC-IDS2wfF3ZgVzjwf0cHUazNGolLFhXVQ",
-    authDomain: "mostpopular-39c60.firebaseapp.com",
-    databaseURL: "https://mostpopular-39c60-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "mostpopular-39c60",
-    storageBucket: "mostpopular-39c60.appspot.com",
-    messagingSenderId: "939775132675",
-    appId: "1:939775132675:web:7d40bd8fff497c53553a36",
-    measurementId: "G-XTTQ03YFN9"
-  };
+  // --- Now convert the compat listeners to modular onValue refs ---
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const settingsRef = db.ref("siteSettings");
-  const triggerAnnRef = db.ref("announcementTriggerNow");
-  const triggerRef = db.ref("jumpscareTriggerNow");
-  const trollRef = db.ref("trollTriggers");
+  const settingsRef = ref(db, "siteSettings");
+  const triggerAnnRef = ref(db, "announcementTriggerNow");
+  const triggerRef = ref(db, "jumpscareTriggerNow");
+  const trollBaseRef = ref(db, "trollTriggers");
 
   // === Timestamp Guards ===
   let lastAnnounceTriggerTime = 0;
@@ -867,7 +861,7 @@ showCategory("all");
   let initialReverseLoaded = false;
 
   // === Listen for site settings ===
-  settingsRef.on("value", (snapshot) => {
+  onValue(settingsRef, (snapshot) => {
     const s = snapshot.val();
     if (!s) return;
 
@@ -875,7 +869,7 @@ showCategory("all");
 
     setupBanner();
     const content = document.getElementById("announcement-content");
-    content.innerHTML = s.announcement || "";
+    if (content) content.innerHTML = s.announcement || "";
   });
 
   // === Setup Announcement Banner if Missing ===
@@ -915,7 +909,7 @@ showCategory("all");
   }
 
   // === Manual Announcement Trigger ===
-  triggerAnnRef.on("value", (snapshot) => {
+  onValue(triggerAnnRef, (snapshot) => {
     const t = snapshot.val();
     if (!t || typeof t.timestamp !== "number") return;
 
@@ -931,7 +925,7 @@ showCategory("all");
     setupBanner();
     const banner = document.getElementById("announcement");
     const content = document.getElementById("announcement-content");
-    content.innerHTML = t.text || "(no message)";
+    if (content) content.innerHTML = t.text || "(no message)";
 
     banner.style.display = "block";
     setTimeout(() => banner.style.opacity = "1", 50);
@@ -942,11 +936,11 @@ showCategory("all");
     }, 5000);
 
     // Optional: clear after use
-    triggerAnnRef.set(null);
+    set(triggerAnnRef, null);
   });
 
   // === Manual Jumpscare Trigger ===
-  triggerRef.on("value", (snapshot) => {
+  onValue(triggerRef, (snapshot) => {
     const t = snapshot.val();
     if (!t || typeof t.timestamp !== "number") return;
 
@@ -973,11 +967,11 @@ showCategory("all");
     setTimeout(() => img.remove(), 1500);
 
     // Optional: clear after use
-    triggerRef.set(null);
+    set(triggerRef, null);
   });
 
   // === Cursor Chaos
-  trollRef.child("cursorChaos").on("value", (snap) => {
+  onValue(ref(db, "trollTriggers/cursorChaos"), (snap) => {
     const data = snap.val();
     if (!data || typeof data.timestamp !== "number") return;
 
@@ -996,188 +990,189 @@ showCategory("all");
     }, 3000);
   });
 
-  trollRef.child("creepySound").on("value", snap => {
-  const data = snap.val();
-  if (!data || !data.url || Date.now() - data.timestamp > 10000) return;
+  // === creepySound (taco rain / crab rave) and audio playing
+  onValue(ref(db, "trollTriggers/creepySound"), (snap) => {
+    const data = snap.val();
+    if (!data || !data.url || Date.now() - data.timestamp > 10000) return;
 
-  const audio = new Audio(data.url);
-  audio.play().catch(console.error);
+    const audio = new Audio(data.url);
+    audio.play().catch(console.error);
 
-  // 🌮 Taco rain
-  if (data.url.includes("rainingtacos.mp3")) {
-    startTacoRain();
-  }
+    // 🌮 Taco rain
+    if (data.url.includes("rainingtacos.mp3")) {
+      startTacoRain();
+    }
 
-  // 🦀 Crab rave
-  if (data.url.includes("crabrave.mp3")) {
-    startCrabRave();
-  }
+    // 🦀 Crab rave
+    if (data.url.includes("crabrave.mp3")) {
+      startCrabRave();
+    }
   });
 
   // === Taco Rain Animation ===
-function startTacoRain() {
-  const tacoURL = "https://cdn-icons-png.flaticon.com/512/10342/10342492.png"; // <== your taco image URL
-  const rainContainer = document.createElement("div");
-  rainContainer.id = "taco-rain";
-  rainContainer.style.position = "fixed";
-  rainContainer.style.top = "0";
-  rainContainer.style.left = "0";
-  rainContainer.style.width = "100%";
-  rainContainer.style.height = "100%";
-  rainContainer.style.pointerEvents = "none";
-  rainContainer.style.overflow = "hidden";
-  rainContainer.style.zIndex = "99999";
-  document.body.appendChild(rainContainer);
+  function startTacoRain() {
+    const tacoURL = "https://cdn-icons-png.flaticon.com/512/10342/10342492.png"; // <== your taco image URL
+    const rainContainer = document.createElement("div");
+    rainContainer.id = "taco-rain";
+    rainContainer.style.position = "fixed";
+    rainContainer.style.top = "0";
+    rainContainer.style.left = "0";
+    rainContainer.style.width = "100%";
+    rainContainer.style.height = "100%";
+    rainContainer.style.pointerEvents = "none";
+    rainContainer.style.overflow = "hidden";
+    rainContainer.style.zIndex = "99999";
+    document.body.appendChild(rainContainer);
 
-  // Generate tacos + spice particles
-  const tacoCount = 20;
-  const spiceCount = 40;
-  for (let i = 0; i < tacoCount; i++) createTaco(rainContainer, tacoURL);
-  for (let i = 0; i < spiceCount; i++) createSpice(rainContainer);
+    // Generate tacos + spice particles
+    const tacoCount = 20;
+    const spiceCount = 40;
+    for (let i = 0; i < tacoCount; i++) createTaco(rainContainer, tacoURL);
+    for (let i = 0; i < spiceCount; i++) createSpice(rainContainer);
 
-  // Remove after song ends (~30s)
-  setTimeout(() => rainContainer.remove(), 33000);
-}
-
-function createTaco(container, tacoURL) {
-  const taco = document.createElement("img");
-  taco.src = tacoURL;
-  taco.style.position = "absolute";
-  taco.style.top = "-100px";
-  taco.style.left = Math.random() * 100 + "vw";
-  taco.style.width = 50 + Math.random() * 50 + "px";
-  taco.style.opacity = 0.9;
-  taco.style.transform = `rotate(${Math.random() * 360}deg)`;
-  taco.style.animation = `tacoFall ${4 + Math.random() * 5}s linear infinite`;
-  taco.style.animationDelay = Math.random() * 5 + "s";
-  container.appendChild(taco);
-}
-
-function createSpice(container) {
-  const spice = document.createElement("div");
-  spice.style.position = "absolute";
-  spice.style.top = "-10px";
-  spice.style.left = Math.random() * 100 + "vw";
-  spice.style.width = "8px";
-  spice.style.height = "8px";
-  spice.style.borderRadius = "50%";
-  spice.style.background = Math.random() > 0.5 ? "#d17f3f" : "#f5c26b"; // taco spice colors
-  spice.style.opacity = 0.8;
-  spice.style.animation = `spiceFall ${3 + Math.random() * 3}s linear infinite`;
-  spice.style.animationDelay = Math.random() * 5 + "s";
-  container.appendChild(spice);
-}
-
-// === CSS Animations ===
-const style = document.createElement("style");
-style.textContent = `
-@keyframes tacoFall {
-  0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-}
-
-@keyframes spiceFall {
-  0% { transform: translateY(-10px); opacity: 1; }
-  100% { transform: translateY(110vh); opacity: 0; }
-}
-`;
-document.head.appendChild(style);
-
-function startCrabRave() {
-  const crabURL = "https://media3.giphy.com/media/v1.Y2lkPTZjMDliOTUyYXJjYTZ2YWxsdTU4bjZleW0yczdxYmhjcmVjMnJob2cwOHlpNTlieiZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/NitS36ljNxQcfT0QIT/200.gif";
-  const pageHeight = Math.max(document.body.scrollHeight, window.innerHeight);
-  const raveContainer = document.createElement("div");
-  raveContainer.id = "crab-rave";
-  Object.assign(raveContainer.style, {
-    position: "absolute",
-    top: "0",
-    left: "0",
-    width: "100%",
-    height: pageHeight + "px",
-    pointerEvents: "none",
-    zIndex: "99998",
-  });
-  document.body.appendChild(raveContainer);
-
-  // === Create full-page spotlights ===
-  const spotlight = document.createElement("div");
-  Object.assign(spotlight.style, {
-    position: "absolute", // scrolls with page
-    top: "0",
-    left: "0",
-    width: "100%",
-    height: pageHeight + "px",
-    pointerEvents: "none",
-    zIndex: "99999",
-    background: "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, transparent 70%)",
-    mixBlendMode: "screen",
-    transition: "background 0.3s ease",
-  });
-  document.body.appendChild(spotlight);
-
-  // === Create crab crowd ===
-  const crabCount = 50;
-  for (let i = 0; i < crabCount; i++) {
-    const crab = document.createElement("img");
-    crab.src = crabURL;
-    crab.style.position = "absolute";
-    crab.style.transition = "transform 0.2s ease";
-    crab.style.willChange = "transform";
-
-    const x = Math.random() * 95 + 2.5;
-    const y = Math.random() * pageHeight;
-
-    const scale = 0.3 + Math.random() * 0.4;
-
-    Object.assign(crab.style, {
-      left: `${x}%`,
-      top: `${y}px`,
-      transform: `translate(-50%, 0) scale(${scale})`,
-      zIndex: Math.floor(scale * 100),
-    });
-
-    raveContainer.appendChild(crab);
+    // Remove after song ends (~30s)
+    setTimeout(() => rainContainer.remove(), 33000);
   }
 
-  // === Beat sync: page scale + crab bounce + spotlight color ===
-  const colors = ["#ff00ff", "#00ffff", "#ffcc00", "#ff69b4", "#00ff00"];
-  let beatUp = false;
-  let colorIndex = 0;
+  function createTaco(container, tacoURL) {
+    const taco = document.createElement("img");
+    taco.src = tacoURL;
+    taco.style.position = "absolute";
+    taco.style.top = "-100px";
+    taco.style.left = Math.random() * 100 + "vw";
+    taco.style.width = 50 + Math.random() * 50 + "px";
+    taco.style.opacity = 0.9;
+    taco.style.transform = `rotate(${Math.random() * 360}deg)`;
+    taco.style.animation = `tacoFall ${4 + Math.random() * 5}s linear infinite`;
+    taco.style.animationDelay = Math.random() * 5 + "s";
+    container.appendChild(taco);
+  }
 
-  const beatInterval = setInterval(() => {
-    beatUp = !beatUp;
+  function createSpice(container) {
+    const spice = document.createElement("div");
+    spice.style.position = "absolute";
+    spice.style.top = "-10px";
+    spice.style.left = Math.random() * 100 + "vw";
+    spice.style.width = "8px";
+    spice.style.height = "8px";
+    spice.style.borderRadius = "50%";
+    spice.style.background = Math.random() > 0.5 ? "#d17f3f" : "#f5c26b"; // taco spice colors
+    spice.style.opacity = 0.8;
+    spice.style.animation = `spiceFall ${3 + Math.random() * 3}s linear infinite`;
+    spice.style.animationDelay = Math.random() * 5 + "s";
+    container.appendChild(spice);
+  }
 
-    // Page scaling bounce
-    const scale = beatUp ? 1.03 : 1; // grow slightly on beat
-    document.body.style.transform = `scale(${scale})`;
-    document.body.style.transformOrigin = "center top";
-    document.body.style.transition = "transform 0.2s ease";
+  // === CSS Animations ===
+  const style = document.createElement("style");
+  style.textContent = `
+  @keyframes tacoFall {
+    0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
 
-    // Spotlight moves randomly
-    const spotlightX = Math.random() * 100;
-    const spotlightY = Math.random() * 100;
-    const color = colors[colorIndex % colors.length];
-    colorIndex++;
-    spotlight.style.background = `radial-gradient(circle at ${spotlightX}% ${spotlightY}%, ${color}40 0%, transparent 70%)`;
+  @keyframes spiceFall {
+    0% { transform: translateY(-10px); opacity: 1; }
+    100% { transform: translateY(110vh); opacity: 0; }
+  }
+  `;
+  document.head.appendChild(style);
 
-    // Crab bounce per beat
-    document.querySelectorAll("#crab-rave img").forEach((crab) => {
-      const bounce = `translateY(${beatUp ? -6 : 0}px)`;
-      crab.style.transform = crab.style.transform.replace(/translateY\(.*?\)/, "") + ` ${bounce}`;
+  function startCrabRave() {
+    const crabURL = "https://media3.giphy.com/media/v1.Y2lkPTZjMDliOTUyYXJjYTZ2YWxsdTU4bjZleW0yczdxYmhjcmVjMnJob2cwOHlpNTlieiZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/NitS36ljNxQcfT0QIT/200.gif";
+    const pageHeight = Math.max(document.body.scrollHeight, window.innerHeight);
+    const raveContainer = document.createElement("div");
+    raveContainer.id = "crab-rave";
+    Object.assign(raveContainer.style, {
+      position: "absolute",
+      top: "0",
+      left: "0",
+      width: "100%",
+      height: pageHeight + "px",
+      pointerEvents: "none",
+      zIndex: "99998",
     });
-  }, 480); // ~125 BPM
+    document.body.appendChild(raveContainer);
 
-  // === End effect after ~17s ===
-  setTimeout(() => {
-    clearInterval(beatInterval);
-    document.body.style.transform = "scale(1)";
-    raveContainer.remove();
-    spotlight.remove();
-  }, 17000);
-}
+    // === Create full-page spotlights ===
+    const spotlight = document.createElement("div");
+    Object.assign(spotlight.style, {
+      position: "absolute", // scrolls with page
+      top: "0",
+      left: "0",
+      width: "100%",
+      height: pageHeight + "px",
+      pointerEvents: "none",
+      zIndex: "99999",
+      background: "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, transparent 70%)",
+      mixBlendMode: "screen",
+      transition: "background 0.3s ease",
+    });
+    document.body.appendChild(spotlight);
+
+    // === Create crab crowd ===
+    const crabCount = 50;
+    for (let i = 0; i < crabCount; i++) {
+      const crab = document.createElement("img");
+      crab.src = crabURL;
+      crab.style.position = "absolute";
+      crab.style.transition = "transform 0.2s ease";
+      crab.style.willChange = "transform";
+
+      const x = Math.random() * 95 + 2.5;
+      const y = Math.random() * pageHeight;
+
+      const scale = 0.3 + Math.random() * 0.4;
+
+      Object.assign(crab.style, {
+        left: `${x}%`,
+        top: `${y}px`,
+        transform: `translate(-50%, 0) scale(${scale})`,
+        zIndex: Math.floor(scale * 100),
+      });
+
+      raveContainer.appendChild(crab);
+    }
+
+    // === Beat sync: page scale + crab bounce + spotlight color ===
+    const colors = ["#ff00ff", "#00ffff", "#ffcc00", "#ff69b4", "#00ff00"];
+    let beatUp = false;
+    let colorIndex = 0;
+
+    const beatInterval = setInterval(() => {
+      beatUp = !beatUp;
+
+      // Page scaling bounce
+      const scale = beatUp ? 1.03 : 1; // grow slightly on beat
+      document.body.style.transform = `scale(${scale})`;
+      document.body.style.transformOrigin = "center top";
+      document.body.style.transition = "transform 0.2s ease";
+
+      // Spotlight moves randomly
+      const spotlightX = Math.random() * 100;
+      const spotlightY = Math.random() * 100;
+      const color = colors[colorIndex % colors.length];
+      colorIndex++;
+      spotlight.style.background = `radial-gradient(circle at ${spotlightX}% ${spotlightY}%, ${color}40 0%, transparent 70%)`;
+
+      // Crab bounce per beat
+      document.querySelectorAll("#crab-rave img").forEach((crab) => {
+        const bounce = `translateY(${beatUp ? -6 : 0}px)`;
+        crab.style.transform = crab.style.transform.replace(/translateY\(.*?\)/, "") + ` ${bounce}`;
+      });
+    }, 480); // ~125 BPM
+
+    // === End effect after ~17s ===
+    setTimeout(() => {
+      clearInterval(beatInterval);
+      document.body.style.transform = "scale(1)";
+      raveContainer.remove();
+      spotlight.remove();
+    }, 17000);
+  }
 
   // === Flashbang
-  trollRef.child("flashbang").on("value", (snap) => {
+  onValue(ref(db, "trollTriggers/flashbang"), (snap) => {
     const data = snap.val();
     if (!data || typeof data.timestamp !== "number") return;
 
@@ -1207,7 +1202,7 @@ function startCrabRave() {
   });
 
   // === Reverse Controls
-  trollRef.child("reverseControls").on("value", (snap) => {
+  onValue(ref(db, "trollTriggers/reverseControls"), (snap) => {
     const data = snap.val();
     if (!data || typeof data.timestamp !== "number") return;
 
@@ -1233,11 +1228,12 @@ function startCrabRave() {
   });
 
   // === 👥 Live User Presence Tracking ===
-  const usersRef = db.ref("connectedUsers");
-  const myRef = usersRef.push();
-  myRef.onDisconnect().remove();
-  myRef.set(true);
+  const usersRef = ref(db, "connectedUsers");
+  const myRef = push(usersRef);
+  // onDisconnect equivalent:
+  const disconnectTask = onDisconnect(myRef);
+  disconnectTask.remove();
+  set(myRef, true);
 </script>
-
 </body>
 </html>
