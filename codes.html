@@ -763,8 +763,20 @@ function showRequestForm() {
   gamesContainer.innerHTML = `
     <div class="form-container">
       <form id="request-form">
-        <input type="text" id="game" name="game" placeholder="Enter game name..." required>
-        <button type="submit">Submit</button>
+        <div class="form-group">
+          <label for="game">Request a Game</label>
+          <input
+            type="text"
+            id="game"
+            name="game"
+            placeholder="Enter the game name..."
+            required
+          />
+        </div>
+
+        <button type="submit" class="form-submit-btn">
+          Submit Request
+        </button>
       </form>
     </div>
   `;
