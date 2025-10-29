@@ -906,72 +906,82 @@ showCategory("all");
   
   const db = getDatabase(app);
 
-  // --- Add these functions ---
-  async function incrementGameClick(name) {
-    const gameRef = ref(db, 'clickData/' + name);
-    const snapshot = await get(gameRef);
-    const current = snapshot.exists() ? snapshot.val() : 0;
-    await set(gameRef, current + 1);
-  }
 
-  async function getAllClickData() {
-    const snapshot = await get(ref(db, 'clickData'));
-    return snapshot.exists() ? snapshot.val() : {};
-  }
+// --- Sanitize Firebase keys ---
+function sanitizeKey(name) {
+  return name.replace(/[.#$/\[\]]/g, "_");
+}
 
-  // --- Hook into your existing buttons (override to include Firebase increment) ---
-  // This keeps the exact same behavior you had: localStorage + global Firebase counts.
-  window.attachButtonEvents = function(container = document) {
-    container.querySelectorAll(".get-code").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const card = btn.closest(".game-card");
-        const code = card.dataset.code;
-        const name = card.querySelector(".game-name").textContent;
+// --- Increment click count in Firebase ---
+async function incrementGameClick(name) {
+  const safeKey = sanitizeKey(name);
+  const gameRef = ref(db, 'clickData/' + safeKey);
+  const snapshot = await get(gameRef);
+  const current = snapshot.exists() ? snapshot.val() : 0;
+  await set(gameRef, current + 1);
+}
 
-        // Firebase increment (uses same authenticated app)
-        try {
-          await incrementGameClick(name); // 🔥 Save global count to Firebase
-        } catch (e) {
-          console.error("incrementGameClick failed:", e);
-        }
+// --- Get all click data from Firebase ---
+async function getAllClickData() {
+  const snapshot = await get(ref(db, 'clickData'));
+  return snapshot.exists() ? snapshot.val() : {};
+}
 
-        navigator.clipboard.writeText(code)
-          .then(() => showNotification("Copied! Code: " + code, true))
-          .catch(() => showNotification("Failed to copy code", false));
+// --- Attach copy & click events to buttons ---
+window.attachButtonEvents = function(container = document) {
+  container.querySelectorAll(".get-code").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const card = btn.closest(".game-card");
+      const code = card.dataset.code;
+      const name = card.querySelector(".game-name").textContent;
 
-        if (document.querySelector(".sidebar-item.active").dataset.category === "popular") {
-          showPopular();
-        }
-      });
+      // Firebase increment
+      try {
+        await incrementGameClick(name);
+      } catch (e) {
+        console.error("incrementGameClick failed:", e);
+      }
+
+      // Copy code to clipboard
+      navigator.clipboard.writeText(code)
+        .then(() => showNotification("Copied! Code: " + code, true))
+        .catch(() => showNotification("Failed to copy code", false));
+
+      // Refresh popular list if active
+      if (document.querySelector(".sidebar-item.active").dataset.category === "popular") {
+        showPopular();
+      }
     });
-  };
+  });
+};
 
-  // keep window.showPopular signature the same (reads counts from Firebase)
-  window.showPopular = async function() {
-    const clickData = await getAllClickData();
-    const ranked = allCards
-      .map(card => {
-        const name = card.querySelector(".game-name").textContent;
-        return { card, count: clickData[name] || 0 };
-      })
-      .filter(e => e.count > 0)
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
+// --- Show top 5 popular games ---
+window.showPopular = async function() {
+  const clickData = await getAllClickData();
+  const ranked = allCards
+    .map(card => {
+      const name = card.querySelector(".game-name").textContent;
+      const safeKey = sanitizeKey(name); // sanitize here too
+      return { card, count: clickData[safeKey] || 0 };
+    })
+    .filter(e => e.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
 
-    gamesContainer.innerHTML = "";
-    ranked.forEach((entry, i) => {
-      const clone = entry.card.cloneNode(true);
-      const badge = document.createElement("div");
-      badge.className = "rank-badge " + (i === 0 ? "rank-gold" : i === 1 ? "rank-silver" : i === 2 ? "rank-bronze" : "rank-blue");
-      badge.textContent = `#${i + 1}`;
-      clone.appendChild(badge);
-      gamesContainer.appendChild(clone);
-    });
-    attachButtonEvents(gamesContainer);
-  };
+  gamesContainer.innerHTML = "";
+  ranked.forEach((entry, i) => {
+    const clone = entry.card.cloneNode(true);
+    const badge = document.createElement("div");
+    badge.className = "rank-badge " +
+      (i === 0 ? "rank-gold" : i === 1 ? "rank-silver" : i === 2 ? "rank-bronze" : "rank-blue");
+    badge.textContent = `#${i + 1}`;
+    clone.appendChild(badge);
+    gamesContainer.appendChild(clone);
+  });
 
-  // --- Now convert the compat listeners to modular onValue refs ---
-
+  attachButtonEvents(gamesContainer);
+};
+  
   const settingsRef = ref(db, "siteSettings");
   const triggerAnnRef = ref(db, "announcementTriggerNow");
   const triggerRef = ref(db, "jumpscareTriggerNow");
