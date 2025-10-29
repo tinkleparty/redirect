@@ -172,6 +172,61 @@ h2 {
 }
 .success { background-color: #4CAF50; }
 .error { background-color: #f44336; }
+
+/* --- Request Form --- */
+.form-container {
+  width: 400px;
+  background: linear-gradient(#1a1a1a, #1a1a1a) padding-box,
+              linear-gradient(145deg, transparent 35%, #e81cff, #40c9ff) border-box;
+  border: 2px solid transparent;
+  padding: 28px 24px;
+  font-size: 14px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-radius: 18px;
+  box-shadow: 0 0 25px rgba(232, 28, 255, 0.3);
+  margin: 40px auto;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.form-container:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 35px rgba(64, 201, 255, 0.4);
+}
+.form-container input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: #fff;
+  font-family: inherit;
+  background-color: transparent;
+  border: 1px solid #444;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+.form-container input:focus {
+  outline: none;
+  border-color: #e81cff;
+  box-shadow: 0 0 10px rgba(232, 28, 255, 0.3);
+}
+.form-container button {
+  align-self: center;
+  color: #ccc;
+  font-weight: 600;
+  background: #212121;
+  border: 1px solid #414141;
+  padding: 12px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.form-container button:hover {
+  background: linear-gradient(90deg, #e81cff, #40c9ff);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 0 15px rgba(64, 201, 255, 0.4);
+}
+
 </style>
 </head>
 <body>
@@ -189,6 +244,7 @@ h2 {
   <div class="sidebar-item" data-category="horror">👻 Horror</div>
   <div class="sidebar-item" data-category="arcade">🕹️ Arcade</div>
   <div class="sidebar-item" data-category="puzzle">🧩 Puzzle</div>
+  <div class="sidebar-item" data-category="request">🎮 Request Games</div>
 </div>
 
 <!-- MAIN -->
@@ -701,6 +757,40 @@ function showNewGames() {
   });
   attachButtonEvents(gamesContainer);
 }
+
+/* --- Request Games --- */
+function showRequestForm() {
+  gamesContainer.innerHTML = `
+    <div class="form-container">
+      <form id="request-form">
+        <input type="text" id="game" name="game" placeholder="Enter game name..." required>
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  `;
+
+  const form = document.getElementById("request-form");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const gameName = document.getElementById("game").value.trim();
+    if (!gameName) return;
+
+    try {
+      await fetch("https://script.google.com/macros/s/AKfycbzeM04a5TJDonO4hj2QkeEinqdviobX2veBbX-IKcUYYV0WJ50ybbmuIeHcO7qiSeH3/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ game: gameName })
+      });
+      showNotification("✅ Game request submitted!", true);
+      form.reset();
+    } catch (error) {
+      console.error(error);
+      showNotification("❌ Failed to submit request.", false);
+    }
+  });
+}
+
   
 /* --- Search --- */
 function filterSearch(term) {
@@ -724,6 +814,7 @@ sidebarItems.forEach(item => {
 
     if (cat === "popular") showPopular();
     else if (cat === "new") showNewGames();
+    else if (cat === "request") showRequestForm();
     else showCategory(cat);
 
     filterSearch(searchBar.value);
