@@ -272,6 +272,7 @@ h2 {
   <div class="sidebar-item" data-category="puzzle">🧩 Puzzle</div>
   <div class="sidebar-item" data-category="simulator">🏭 Simulator</div>
   <div class="sidebar-item" data-category="request">🎮 Request Games</div>
+  <div class="sidebar-item" id="movies-btn">🎬 Movies</div>
 </div>
 
 <!-- MAIN -->
@@ -741,7 +742,9 @@ const allCards = [...document.querySelectorAll(".game-card")]; // Keep originals
 const title = document.getElementById("category-title");
 const notification = document.getElementById("notification");
 const searchBar = document.getElementById("search-bar");
-
+const moviesBtn = document.getElementById("movies-btn");
+const moviesLink = "https://nawsomey.github.io/host/cinema";
+  
 let clickData = JSON.parse(localStorage.getItem("clickData")) || {};
 
 /* --- Copy Buttons --- */
@@ -902,6 +905,15 @@ searchBar.addEventListener("input", e => filterSearch(e.target.value));
 
 attachButtonEvents();
 showCategory("all");
+
+moviesBtn.addEventListener("click", () => {
+  const win = window.open("about:blank", "_blank");
+  if (win) {
+    win.location.href = moviesLink;
+  } else {
+    alert("Please allow pop-ups for this site to open Movies.");
+  }
+});
 </script>
 
 <script type="module">
