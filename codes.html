@@ -929,7 +929,6 @@ moviesBtn.addEventListener("click", () => {
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-  import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app-check.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
   import {
     getDatabase, ref, get, set, onValue, push, onDisconnect
@@ -952,11 +951,6 @@ moviesBtn.addEventListener("click", () => {
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
 
-  const appCheck = initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider('thisismykey'),
-    isTokenAutoRefreshEnabled: true
-  });
-  
   // --- 🔐 Anonymous Auth (must come before database use) ---
   const auth = getAuth(app);
   signInAnonymously(auth)
