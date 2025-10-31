@@ -908,8 +908,19 @@ showCategory("all");
 
 moviesBtn.addEventListener("click", () => {
   const win = window.open("about:blank", "_blank");
+
   if (win) {
-    win.location.href = moviesLink;
+    win.document.write(`
+      <html>
+        <head><title>Tinkle Party Cinema</title></head>
+        <body style="margin:0;background-color:black;">
+          <iframe src="${moviesLink}" 
+            style="border:none;width:100vw;height:100vh;" 
+            allowfullscreen></iframe>
+        </body>
+      </html>
+    `);
+    win.document.close();
   } else {
     alert("Please allow pop-ups for this site to open Movies.");
   }
